@@ -1,0 +1,39 @@
+.glare-hover {
+  width: var(--gh-width);
+  height: var(--gh-height);
+  background: var(--gh-bg);
+  border-radius: var(--gh-br);
+  border: 1px solid var(--gh-border);
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+}
+
+.glare-hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(var(--gh-angle), transparent 60%, var(--gh-rgba) 70%, transparent, transparent 100%);
+  background-size: var(--gh-size) var(--gh-size);
+  background-repeat: no-repeat;
+  background-position: -100% -100%;
+  transition: background-position var(--gh-duration) ease;
+}
+
+.glare-hover:hover::before {
+  background-position: 100% 100%;
+}
+
+.glare-hover--play-once::before { transition: none; }
+.glare-hover--play-once:hover::before {
+  transition: background-position var(--gh-duration) ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glare-hover::before { display: none; }
+  .glare-hover.tool-card { transition: none; }
+}

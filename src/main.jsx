@@ -87,15 +87,15 @@ function FloatingHeader({ active = 'home' }) {
     <nav className="orbit-nav" aria-label="主导航">
       <a className={active === 'home' ? 'is-active' : ''} href="/">Home丨首页</a>
       <div className="orbit-nav-dropdown">
-        <a className={active === 'design' ? 'is-active' : ''} href="/design.html">Design work丨平面作品</a>
+        <a className={active === 'design' ? 'is-active' : ''} href="/design">Design work丨平面作品</a>
         <div className="orbit-nav-menu" aria-label="平面作品分类">
-          <a href="/website-design.html">网站设计</a>
-          <a href="/amazon-store-design.html">亚马逊旗舰店设计</a>
-          <a href="/detail-page-design.html">详情页设计</a>
-          <a href="/commercial-design.html">商业设计</a>
+          <a href="/website-design">网站设计</a>
+          <a href="/amazon-store-design">亚马逊旗舰店设计</a>
+          <a href="/detail-page-design">详情页设计</a>
+          <a href="/commercial-design">商业设计</a>
         </div>
       </div>
-      <a className={active === 'video' ? 'is-active' : ''} href="/video.html">video丨视频</a>
+      <a className={active === 'video' ? 'is-active' : ''} href="/video">video丨视频</a>
       <a href="/#contact">Contact丨联系</a>
     </nav>
     <a href="/#contact" className="orbit-pill">CONTACT <b>↗</b></a>
@@ -216,10 +216,10 @@ function VideoCardShowcase() {
 }
 
 const designCategories = [
-  { slug: 'website-design.html', number: '01', title: '网站设计', english: 'WEBSITE DESIGN', image: '/assets/web-page.png', description: '品牌官网与数字界面的视觉体验。', works: ['/assets/website-design-08.jpg', '/assets/website-design-09.jpg', '/assets/website-design-10.jpg', '/assets/website-design-11.jpg'] },
-  { slug: 'amazon-store-design.html', number: '02', title: '亚马逊旗舰店设计', english: 'AMAZON FLAGSHIP STORE', image: '/assets/amazon-page.png', description: '围绕品牌与产品建立完整的店铺视觉。', works: ['/assets/amazon-page.png', '/assets/product-grid.png'] },
-  { slug: 'detail-page-design.html', number: '03', title: '详情页设计', english: 'PRODUCT DETAIL PAGE', image: '/assets/product-grid.png', description: '从产品卖点到场景化内容的清晰表达。', works: ['/assets/product-grid.png', '/assets/work-showcase-01.jpg'] },
-  { slug: 'commercial-design.html', number: '04', title: '商业设计', english: 'COMMERCIAL DESIGN', image: '/assets/work-showcase-04.jpg', description: '品牌活动、视觉传播与商业内容设计。', works: ['/assets/work-showcase-04.jpg', '/assets/work-showcase-05.jpg', '/assets/work-showcase-02.jpg'] },
+  { slug: 'website-design', number: '01', title: '网站设计', english: 'WEBSITE DESIGN', image: '/assets/web-page.png', description: '品牌官网与数字界面的视觉体验。', works: ['/assets/website-design-08.jpg', '/assets/website-design-09.jpg', '/assets/website-design-10.jpg', '/assets/website-design-11.jpg'] },
+  { slug: 'amazon-store-design', number: '02', title: '亚马逊旗舰店设计', english: 'AMAZON FLAGSHIP STORE', image: '/assets/amazon-page.png', description: '围绕品牌与产品建立完整的店铺视觉。', works: ['/assets/amazon-page.png', '/assets/product-grid.png'] },
+  { slug: 'detail-page-design', number: '03', title: '详情页设计', english: 'PRODUCT DETAIL PAGE', image: '/assets/product-grid.png', description: '从产品卖点到场景化内容的清晰表达。', works: ['/assets/product-grid.png', '/assets/work-showcase-01.jpg'] },
+  { slug: 'commercial-design', number: '04', title: '商业设计', english: 'COMMERCIAL DESIGN', image: '/assets/work-showcase-04.jpg', description: '品牌活动、视觉传播与商业内容设计。', works: ['/assets/work-showcase-04.jpg', '/assets/work-showcase-05.jpg', '/assets/work-showcase-02.jpg'] },
 ]
 
 function DesignCategoryLinks() {
@@ -235,7 +235,7 @@ function DesignCategoryLinks() {
 }
 
 function DesignCategoryPage({ category }) {
-  return <main className={`secondary-page category-page ${category.slug === 'website-design.html' ? 'category-page--website' : ''}`}> 
+  return <main className={`secondary-page category-page ${category.slug === 'website-design' ? 'category-page--website' : ''}`}>
     <FloatingHeader active="design" />
     <section className="secondary-hero category-hero"><div className="shell">
       <p className="secondary-kicker">DESIGN WORK / {category.english}</p>
@@ -245,7 +245,7 @@ function DesignCategoryPage({ category }) {
     <section className="category-showcase"><div className="shell">
       {category.works.map((image, index) => <figure key={image}><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>0{index + 1}</span><span>{category.english}</span></figcaption></figure>)}
     </div></section>
-    <footer className="secondary-footer"><div className="shell"><a href="/design.html">← 返回平面作品</a><a href="/#contact">联系我 ↗</a></div></footer>
+    <footer className="secondary-footer"><div className="shell"><a href="/design">← 返回平面作品</a><a href="/#contact">联系我 ↗</a></div></footer>
   </main>
 }
 
@@ -345,13 +345,13 @@ function App() {
   </main>
 }
 
-const page = window.location.pathname.split('/').pop()
+const page = window.location.pathname.split('/').pop().replace(/\.html$/, '')
 const currentCategory = designCategories.find((category) => category.slug === page)
 const content = currentCategory
   ? <DesignCategoryPage category={currentCategory} />
-  : page === 'design.html'
+  : page === 'design'
   ? <SecondaryPage type="design" />
-  : page === 'video.html'
+  : page === 'video'
     ? <SecondaryPage type="video" />
     : <App />
 

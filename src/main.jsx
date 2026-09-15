@@ -1,5 +1,7 @@
-import { StrictMode, useEffect, useRef, useState } from 'react'
+import { StrictMode, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import AccordionGallery from './AccordionGallery'
 import ScrollStack from './ScrollStack'
 import GlareHover from './GlareHover'
@@ -21,8 +23,8 @@ const strengths = [
 ]
 
 const galleryProjects = [
-  { image: '/assets/work-showcase-03.jpg', label: 'TFIT NOVA MAX', type: '3D MOTION / PRODUCT', subtitle: '产品 3D 渲染与动态视觉' },
-  { image: '/assets/work-showcase-02.jpg', label: 'PRODUCT STORIES', type: 'E-COMMERCE / A+ CONTENT', subtitle: '从卖点到场景的视觉叙事' },
+  { image: '/assets/work-showcase-01-new.png', label: 'TFIT NOVA MAX', type: '3D MOTION / PRODUCT', subtitle: '产品 3D 渲染与动态视觉' },
+  { image: '/assets/work-showcase-02-new.png', label: 'PRODUCT STORIES', type: 'E-COMMERCE / A+ CONTENT', subtitle: '从卖点到场景的视觉叙事' },
   { image: '/assets/work-showcase-01.jpg', label: 'AMAZON A+ PAGE', type: 'E-COMMERCE / DETAIL', subtitle: '跨境电商详情页视觉系统' },
   { image: '/assets/work-showcase-04.jpg', label: 'BRAND IDENTITY', type: 'BRAND / VISUAL', subtitle: '从品牌语言到触点表达' },
   { image: '/assets/work-showcase-05.jpg', label: 'DIGITAL EXPERIENCE', type: 'WEB / INTERFACE', subtitle: '数字界面的视觉体验' },
@@ -48,6 +50,7 @@ const toolkitGroups = [
       ['Figma', '/assets/tool-icons/figma.svg'],
       ['Cinema 4D', '/assets/tool-icons/c4d.png'],
       ['KeyShot', '/assets/tool-icons/keyshot.png'],
+      ['more', '/assets/tool-icons/ollama.svg'],
     ],
   },
   {
@@ -161,8 +164,9 @@ function OrbitHero() {
   return <section className="orbit-stage" id="top" ref={stageRef}>
     <h1 className="orbit-word" aria-label="Echo"><span className="orbit-word-mask"><span className="orbit-word-inner"><span className="orbit-white"><span className="orbit-o">E</span>C</span><span className="orbit-pink">HO</span></span></span></h1>
     <div className="orbit-flower" ref={flowerRef}><img className="orbit-sizer" src={girlRevealImage} alt="" aria-hidden="true" /><div className="orbit-layer orbit-front" ref={frontRef}><img src={girlRevealImage} alt="网点风格女孩插画" /></div><div className="orbit-layer orbit-reveal" ref={revealRef} aria-hidden="true"><img src={girlImage} alt="" /></div></div>
+    <div className="orbit-stickers" aria-hidden="true"><span className="orbit-sticker orbit-sticker--spark">✦</span><span className="orbit-sticker orbit-sticker--arrow">↗</span><span className="orbit-sticker orbit-sticker--stamp">AI<br />CRAFT<br /><i>01</i></span><span className="orbit-sticker orbit-sticker--label">VISUAL<br />SIGNAL · 2026</span></div>
     <p className="orbit-corner orbit-corner-left">Every image, <br />intelligently composed.</p><p className="orbit-corner orbit-corner-right">Less generic design.<br />More memorable output.</p>
-    <p className="orbit-caption">VISUAL DESIGNER · AI CREATIVE · BRAND DESIGN</p>
+
   </section>
 }
 
@@ -172,6 +176,13 @@ const motionReels = [
   { src: '/assets/motion-reel-03.mp4', poster: '/assets/reel-cover-03.png', kicker: '03. BRAND / DIGITAL', name: 'BRAND IN MOTION', detail: '让品牌语言在动态、网页与每一次数字触点中保持一致。' },
   { poster: '/assets/reel-cover-04.png', kicker: '04. E-COMMERCE / A+', name: 'DETAILS THAT SELL', detail: '为跨境电商建立更清晰、更有感知力的商品详情体验。' },
   { poster: '/assets/reel-cover-05.jpg', kicker: '05. WEB / EXPERIENCE', name: 'DIGITAL RHYTHM', detail: '以有节奏的动态交互，增强品牌网站的内容层次与记忆点。' },
+]
+
+const videoStoryboards = [
+  '/assets/video-storyboard-04.jpg',
+  '/assets/video-storyboard-05.jpg',
+  '/assets/video-storyboard-06.jpg',
+  '/assets/video-storyboard-07.jpg',
 ]
 
 function MotionReels() { return <div id="reels"><ScrollStack items={motionReels} /></div> }
@@ -208,6 +219,13 @@ function VideoCardShowcase() {
         </div>
       </div>
     </section>
+    <section className="video-storyboards" aria-label="TFIT 产品动画项目展示">
+      <div className="shell video-storyboard-list">
+        {videoStoryboards.map((image, index) => <figure key={image}>
+          <img src={image} alt={`TFIT 产品动画项目展示 ${index + 1}`} loading="lazy" />
+        </figure>)}
+      </div>
+    </section>
     {activeVideo && <div className="video-modal" role="dialog" aria-modal="true" aria-label={activeVideo.name} onMouseDown={(event) => { if (event.target === event.currentTarget) setActiveVideo(null) }}>
       <button type="button" className="video-modal-close" onClick={() => setActiveVideo(null)} aria-label="关闭视频">×</button>
       <div className="video-modal-panel"><video src={activeVideo.src} poster={activeVideo.poster} controls autoPlay playsInline /><div><small>{activeVideo.kicker}</small><h2>{activeVideo.name}</h2><p>{activeVideo.detail}</p></div></div>
@@ -216,10 +234,106 @@ function VideoCardShowcase() {
 }
 
 const designCategories = [
-  { slug: 'website-design', number: '01', title: '网站设计', english: 'WEBSITE DESIGN', image: '/assets/web-page.png', description: '品牌官网与数字界面的视觉体验。', works: ['/assets/website-design-08.jpg', '/assets/website-design-09.jpg', '/assets/website-design-10.jpg', '/assets/website-design-11.jpg'] },
-  { slug: 'amazon-store-design', number: '02', title: '亚马逊旗舰店设计', english: 'AMAZON FLAGSHIP STORE', image: '/assets/amazon-page.png', description: '围绕品牌与产品建立完整的店铺视觉。', works: ['/assets/amazon-page.png', '/assets/product-grid.png'] },
-  { slug: 'detail-page-design', number: '03', title: '详情页设计', english: 'PRODUCT DETAIL PAGE', image: '/assets/product-grid.png', description: '从产品卖点到场景化内容的清晰表达。', works: ['/assets/product-grid.png', '/assets/work-showcase-01.jpg'] },
-  { slug: 'commercial-design', number: '04', title: '商业设计', english: 'COMMERCIAL DESIGN', image: '/assets/work-showcase-04.jpg', description: '品牌活动、视觉传播与商业内容设计。', works: ['/assets/work-showcase-04.jpg', '/assets/work-showcase-05.jpg', '/assets/work-showcase-02.jpg'] },
+  { slug: 'website-design', number: '01', title: '网站设计', english: 'WEBSITE DESIGN', image: '/assets/design-cover-website.jpg', description: '品牌官网与数字界面的视觉体验。', works: ['/assets/website-design-08.jpg', '/assets/website-design-09.jpg', '/assets/website-design-10.jpg', '/assets/website-design-11.jpg'] },
+  { slug: 'amazon-store-design', number: '02', title: '亚马逊旗舰店设计', english: 'AMAZON FLAGSHIP STORE', image: '/assets/design-cover-amazon-store.jpg', description: '围绕品牌与产品建立完整的店铺视觉。', works: ['/assets/amazon-store-01.jpg', '/assets/amazon-store-02.jpg', '/assets/amazon-store-03.jpg', '/assets/amazon-store-04.jpg', '/assets/amazon-store-05.jpg', '/assets/amazon-store-06.jpg', '/assets/amazon-store-07.jpg', '/assets/amazon-store-08.jpg', '/assets/amazon-store-09.jpg', '/assets/amazon-store-10.jpg'] },
+  { slug: 'detail-page-design', number: '03', title: '详情页设计', english: 'PRODUCT DETAIL PAGE', image: '/assets/design-cover-detail-page.jpg', description: '从产品卖点到场景化内容的清晰表达。', works: ['/assets/detail-preview-01.jpg', '/assets/detail-preview-02.png', '/assets/detail-preview-03.jpg', '/assets/detail-preview-04.png', '/assets/detail-preview-05-foldable-headphones.jpg', '/assets/detail-preview-06-aebar-blueberry.png', '/assets/detail-preview-07-cat-fountain.png', '/assets/detail-preview-08.png'] },
+  { slug: 'commercial-design', number: '04', title: '商业设计', english: 'COMMERCIAL DESIGN', image: '/assets/design-cover-commercial.jpg', description: '品牌活动、视觉传播与商业内容设计。', works: ['/assets/work-showcase-04.jpg', '/assets/work-showcase-05.jpg', '/assets/work-showcase-02.jpg'] },
+]
+
+const detailWorkSections = {
+  0: [{
+    label: 'MAIN IMAGES / 主图',
+    layout: 'stack',
+    images: ['/assets/detail-work-01-main-01.jpg', '/assets/detail-work-01-main-02.jpg', '/assets/detail-work-01-main-03.jpg', '/assets/detail-work-01-main-04.jpg', '/assets/detail-work-01-main-05.jpg', '/assets/detail-work-01-main-06.jpg', '/assets/detail-work-01-main-07.jpg', '/assets/detail-work-01-main-08.jpg', '/assets/detail-work-01-main-09.jpg', '/assets/detail-work-01-main-10.jpg'],
+  }, {
+    label: 'A+ CONTENT / A+ 设计',
+    layout: 'aplus',
+    images: ['/assets/detail-work-01-aplus-01.png', '/assets/detail-work-01-aplus-02.png', '/assets/detail-work-01-aplus-03.png', '/assets/detail-work-01-aplus-05a.png', '/assets/detail-work-01-aplus-05b.png', '/assets/detail-work-01-aplus-05c.png', '/assets/detail-work-01-aplus-05d.png', '/assets/detail-work-01-aplus-05e.png', '/assets/detail-work-01-aplus-06a.png', '/assets/detail-work-01-aplus-06b.png', '/assets/detail-work-01-aplus-07a.png', '/assets/detail-work-01-aplus-07b.png', '/assets/detail-work-01-aplus-07c.png', '/assets/detail-work-01-aplus-07d.png'],
+  }],
+  1: [{
+    label: 'MAIN IMAGES / 主图',
+    layout: 'stack',
+    images: ['/assets/detail-work-02-main-01.png', '/assets/detail-work-02-main-02.png', '/assets/detail-work-02-main-03.png', '/assets/detail-work-02-main-04.png', '/assets/detail-work-02-main-05.png', '/assets/detail-work-02-main-06.png', '/assets/detail-work-02-main-07.png', '/assets/detail-work-02-main-08.png'],
+  }, {
+    label: 'A+ CONTENT / A+ 设计',
+    layout: 'aplus',
+    images: ['/assets/detail-work-02-aplus-01.png', '/assets/detail-work-02-aplus-02.png', '/assets/detail-work-02-aplus-03a-v2.png', '/assets/detail-work-02-aplus-03b.png', '/assets/detail-work-02-aplus-03c.png', '/assets/detail-work-02-aplus-03d.png', '/assets/detail-work-02-aplus-04.png', '/assets/detail-work-02-aplus-05a.png', '/assets/detail-work-02-aplus-05b.png', '/assets/detail-work-02-aplus-05c.png', '/assets/detail-work-02-aplus-06a-v2.png', '/assets/detail-work-02-aplus-06b.png'],
+    carouselGroups: [[2, 3, 4, 5], [7, 8, 9], [10, 11]],
+  }],
+  2: [{
+    label: 'MAIN IMAGES / 主图',
+    layout: 'stack',
+    images: ['/assets/detail-work-03-main-card-01.jpg', '/assets/detail-work-03-main-card-02.png', '/assets/detail-work-03-main-card-03.png', '/assets/detail-work-03-main-card-04.png'],
+  }, {
+    label: 'A+ CONTENT / A+ 设计',
+    layout: 'aplus',
+    images: ['/assets/detail-work-03-main-01.png', '/assets/detail-work-03-main-02.png', '/assets/detail-work-03-main-03.png', '/assets/detail-work-03-main-04.png', '/assets/detail-work-03-main-05.png', '/assets/detail-work-03-main-06.png', '/assets/detail-work-03-main-07.png'],
+  }],
+  3: [{
+    label: 'MAIN IMAGES / 主图',
+    layout: 'stack',
+    images: ['/assets/detail-work-04-main-01.png', '/assets/detail-work-04-main-02.png', '/assets/detail-work-04-main-04.png', '/assets/detail-work-04-main-05.png', '/assets/detail-work-04-main-03.png'],
+  }, {
+    label: 'A+ CONTENT / A+ 设计',
+    layout: 'aplus',
+    images: ['/assets/detail-work-04-aplus-01.png', '/assets/detail-work-04-aplus-02.png', '/assets/detail-work-04-aplus-03.png', '/assets/detail-work-04-aplus-04.png', '/assets/detail-work-04-aplus-05.png', '/assets/detail-work-04-aplus-06.png', '/assets/detail-work-04-aplus-07.png'],
+  }],
+  4: [{
+    label: 'MAIN IMAGES / 主图',
+    layout: 'stack',
+    images: ['/assets/detail-work-05-main-01.png', '/assets/detail-work-05-main-02.png', '/assets/detail-work-05-main-03.png', '/assets/detail-work-05-main-04.png', '/assets/detail-work-05-main-05.png', '/assets/detail-work-05-main-06.png', '/assets/detail-work-05-main-07.png', '/assets/detail-work-05-main-08.png'],
+  }, {
+    label: 'A+ CONTENT / A+ 设计',
+    layout: 'aplus',
+    images: ['/assets/detail-work-05-aplus-01.jpg', '/assets/detail-work-05-aplus-02.jpg', '/assets/detail-work-05-aplus-03a.jpg', '/assets/detail-work-05-aplus-03b.jpg', '/assets/detail-work-05-aplus-03c.jpg', '/assets/detail-work-05-aplus-03d.jpg', '/assets/detail-work-05-aplus-03e.jpg', '/assets/detail-work-05-aplus-04a.jpg', '/assets/detail-work-05-aplus-04b.jpg', '/assets/detail-work-05-aplus-04c.jpg', '/assets/detail-work-05-aplus-04d.jpg', '/assets/detail-work-05-aplus-04e.jpg', '/assets/detail-work-05-aplus-05.jpg'],
+    carouselGroups: [[2, 3, 4, 5, 6], [7, 8, 9, 10, 11]],
+  }],
+  5: [{
+    label: 'MAIN IMAGES / 主图',
+    layout: 'stack',
+    images: ['/assets/commercial-social/4f604f8b9b330dccebceb88bb739b997.PNG', '/assets/commercial-social/5c84aced1c66ab9d185be1185287ba45.PNG', '/assets/commercial-social/6b4e87f2dfb3a312247bcc55f7eda280.PNG', '/assets/commercial-social/60c344a7502f09942e3a9bd17780fd1f.PNG', '/assets/commercial-social/751106d6af88fa8ccba5da48cd73bb3b.PNG', '/assets/commercial-social/b074faf3b1b4fd1e3897b3d450049adf.PNG', '/assets/commercial-social/b596bdb895af94f8cc144c6b06ff9779.PNG', '/assets/commercial-social/f2da4ff6cbd48a16878e6c4684386c4d.PNG'],
+  }, {
+    label: 'A+ CONTENT / A+ 设计',
+    layout: 'aplus',
+    images: ['/assets/detail-work-06-aplus-01.jpg', '/assets/detail-work-06-aplus-02.jpg', '/assets/detail-work-06-aplus-03.jpg', '/assets/detail-work-06-aplus-04.jpg', '/assets/detail-work-06-aplus-05.jpg', '/assets/detail-work-06-aplus-06.jpg'],
+  }]
+}
+
+const commercialDesignSections = [
+  { number: '01', title: '社媒图片', english: 'SOCIAL MEDIA' },
+  { number: '02', title: '海报图片', english: 'POSTER DESIGN' },
+  { number: '03', title: '包装设计', english: 'PACKAGING DESIGN' },
+  { number: '04', title: '展会设计', english: 'EXHIBITION DESIGN' },
+]
+
+const commercialSocialGroups = [
+  { number: '01', title: 'AE BAR 15K', subtitle: 'CHARACTER FLAVOR SERIES', accent: '#fd86db', images: ['4f604f8b9b330dccebceb88bb739b997.PNG', '5c84aced1c66ab9d185be1185287ba45.PNG', '6b4e87f2dfb3a312247bcc55f7eda280.PNG', '60c344a7502f09942e3a9bd17780fd1f.PNG', '4069df8d91216823bb094b7258b88b3b.PNG', '751106d6af88fa8ccba5da48cd73bb3b.PNG', 'b074faf3b1b4fd1e3897b3d450049adf.PNG', 'b596bdb895af94f8cc144c6b06ff9779.PNG', 'f2da4ff6cbd48a16878e6c4684386c4d.PNG'] },
+  { number: '02', title: 'INFY 15,000', subtitle: 'NEW FLAVORS SERIES', accent: '#72f13f', images: ['148a9f1d1f973f022ddf691f2c4d67ed.PNG', 'c7ad68d474c2898abec1bbe0dcafd15f.PNG', '74f5868e451e4688370d276827fff8a5.PNG', '54a393e40f6ef39fb8afb6c4b3cd5fc7.PNG', 'e34133adc58b9186fb72482558bf4313.PNG'] },
+  { number: '03', title: 'DOLPHIN BAR', subtitle: 'ANIMAL ILLUSTRATION SERIES', accent: '#f7a52d', images: ['857a486f0a6444e00c966d66b5f3bf53.JPG', '1f581427ced7c5c89b0fccafecaa7325.JPG', '8f391a9400dd6ec381759968196620a8.JPG', '4560180ae99a5d8e4ab0b41e0dae3869.JPG', 'c0fddc2afa86ab0a9a83918e3146bf6c.JPG', 'f99dea1a7f0e8cb02e1e5f3e6c58b90e.JPG', 'f4604a7d75227af40f5f8060c8e63283.JPG'] },
+  { number: '04', title: 'TFIT NOVA MAX', subtitle: 'TECH IN NIGHT', accent: '#37f78b', images: ['8d0b045cf0923ed6f89e45351df1d6aa.PNG', '8e2be307387a6d83b5f02d02bf231ec3.PNG', '560f532ce47d8382df2312b936bc7ba8.PNG', 'b9c2e77a27adb1777f46bd5c51483ef4.PNG', 'f880945c797c49a18ae3409710e360eb.PNG'] },
+  { number: '05', title: 'AE BAR 30W', subtitle: 'PRODUCT & FLAVOR CAMPAIGN', accent: '#6ebcff', images: ['660aecd52370d11d2f99d4595258e0ef.PNG', '5cf4ed8fe8d9f5d34c1a1fc83bac8968.JPG', '6db031c8dcc0d9ebd5576899ac6bbc6e.PNG', 'ce01b244c8db2a07f3f97fe085bfa368.JPG', '04bb2138f935aff84f082c5f4bb45900.PNG', 'be39ba98521d26449f3c8e4fc461503d.PNG', 'd2b6ea0d79f98e24b8bd153904313104.PNG', 'e3adcae48f7748039dd86ccbcb7fc080.PNG', 'f6777a4fb4851e9e5244e6ac1a9294ba.PNG'] },
+  { number: '06', title: 'TEX BAR', subtitle: 'COLORFUL LIFESTYLE SERIES', accent: '#ff70ad', images: ['3c39c326f64332a824be3aeffcf06072.PNG', '9e6f2b6f09df9b91c078172c7ba8cce2.JPG', 'af658b7c35f7ed1c47e0d0dba3413075.PNG'] },
+  { number: '07', title: 'ICE + NIC', subtitle: 'ADJUSTABLE DISPOSABLE', accent: '#20c8ff', images: ['1866810036ed38bc134bfccdf779ef38.JPG', 'd82dec0ded229457f8d5b9100b84ff04.JPG', '41a2b9da885735cfe87bd406b334c55c.PNG'] },
+
+
+].map((group) => ({ ...group, images: group.images.map((image) => `/assets/commercial-social/${image}`) }))
+const commercialPosterGroups = [
+  { number: '01', title: 'PRODUCT SERIES', subtitle: 'AE BAR COLLECTION', accent: '#b9ef26', images: ['4a8f58509c79785a6b19abc6d26f4863.PNG', '93aa23d19a127a957a5e965322169318.PNG', '9bb1bb64ed2d80a58e020690757f789f.PNG', '9cf9898a5c9475dcd03b9e8c55b78006.PNG', '6217c320fd8049ab21c80df94814847a.PNG', 'c8f01aeabb996e5aa1dd40afee9f62c8.PNG', 'b7a12619882a072efed7bf09da8852e9.PNG'] },
+  { number: '02', title: 'FESTIVE CAMPAIGN', subtitle: 'NEW YEAR & CHRISTMAS', accent: '#ff4141', images: ['5ff908ea50e278d568dc128d691c05ce.JPG', '6fba6e3245f8c26b91249d71431dba8b.PNG', '24b689b631b0a33c507440c51b4cca01.PNG', '91bf9b1d84cc51ab05b607bb16b69ea5.JPG'] },
+
+  { number: '03', title: 'CREATIVE LIFESTYLE', subtitle: 'BRAND VISUAL', accent: '#fd86db', images: ['ChatGPT Image 2026年9月14日 11_03_02.png', '小风扇海报.jpg', '饮水机海报.jpg'] },
+].map((group) => ({ ...group, images: group.images.map((image) => `/assets/commercial-posters/${image}`) }))
+const commercialPackagingGroups = [
+  { number: '01', title: 'AE BAR POD 6000', subtitle: 'PACKAGING COLLECTION', accent: '#ff8fc4', images: ['1c9b4ebeac14610d6a8294f675bfe3a6.PNG', '8a71971884469ae89d455e358b389126.PNG', '57e01606e68043879fb8812180498e6e.PNG', 'b98eee06f24c914de14751cf5a54aecd.PNG', 'c633a685e0541127173a8e65f27a5e1c.PNG', 'f0b26584149d0a3e847134db1f482afe.PNG', '6b9032d4985926dbfdca923dca63d993.PNG', '9964cf7e3a9a422cd3f7bc94150b9a29.PNG', 'f880945c797c49a18ae3409710e360eb.PNG'] },
+  { number: '02', title: 'AE BAR CAPSULE', subtitle: 'FLAVOR PACKAGING SYSTEM', accent: '#ffca55', images: ['7c3bbb697439d8715c87043df07b3af8.PNG', '9e575c9fe5685f57fcfe3ffc7c9de345.PNG', '7377f5104d8f0a964f296a74a9394fc8.PNG', '495102f5f40a6ff2e6c0edc5b2da568a.PNG'] },
+].map((group) => ({ ...group, images: group.images.map((image) => `/assets/commercial-packaging/${image}`) }))
+const commercialExhibitionGroups = [
+  { number: '01', title: 'TFIT EXHIBITION', subtitle: 'BOOTH & ON-SITE VISUALS', accent: '#69ff38', images: ['微信图片_20250908144603_8_256.jpg', 'C3799E45-106C-4184-8E1C-39B89E314918-26868-0000092990B0FF4C.PNG', '展会折页2.jpg', '展会折页1.jpg', 'afac9ae64b2ef3d97ddeca6a492782e4.JPG'] },
+  { number: '02', title: 'BRAND MATERIALS', subtitle: 'APPAREL & GIVEAWAYS', accent: '#b7ff42', images: ['65e0388c73e8cf4a0c0bfdf01270506b.PNG', '78278f6faa3c94e23c038e5056e05843.PNG', 'a71abf3d16327f47ab7751fe6e71986a.PNG', '94f9006fe8fcd70efbf8ce992b16859a.jpg', 'ac14fc99b3d78542ffd45047192c84d5.PNG', 'IMG_8483.PNG'] },
+].map((group) => ({ ...group, images: group.images.map((image) => `/assets/commercial-exhibition/${image}`) }))
+const emptyDetailWorkSections = [
+  { label: 'MAIN IMAGES / 主图', layout: 'stack', images: [] },
+  { label: 'A+ CONTENT / A+ 设计', layout: 'aplus', images: [] },
 ]
 
 function DesignCategoryLinks() {
@@ -234,18 +348,134 @@ function DesignCategoryLinks() {
   </div>
 }
 
+function CommercialDesignShowcase() {
+  const [selectedImage, setSelectedImage] = useState(null)
+  useEffect(() => {
+    if (!selectedImage) return undefined
+    const previousOverflow = document.body.style.overflow
+    const closeOnEscape = (event) => { if (event.key === 'Escape') setSelectedImage(null) }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [selectedImage])
+  return <section className="commercial-design-showcase"><div className="shell">
+    {commercialDesignSections.map((section) => <section className="commercial-design-section" id={`commercial-${section.number}`} key={section.number}>
+      <header className="commercial-design-section-title"><span>{section.number}</span><div><small>{section.english}</small><h2>{section.title}</h2></div></header>
+      {section.number === '01' || section.number === '02' || section.number === '03' || section.number === '04' ? <div className={`commercial-social-groups${section.number === '02' ? ' commercial-social-groups--poster' : ''}${section.number === '03' ? ' commercial-social-groups--packaging' : ''}${section.number === '04' ? ' commercial-social-groups--exhibition' : ''}`}>
+        {(section.number === '01' ? commercialSocialGroups : section.number === '02' ? commercialPosterGroups : section.number === '03' ? commercialPackagingGroups : commercialExhibitionGroups).map((group) => <article className="commercial-social-group" style={{ '--group-accent': group.accent }} key={group.title}>
+          <header className="commercial-social-group-title"><span>{group.number}</span><div><small>{group.subtitle}</small><h3>{group.title}</h3></div><b>{String(group.images.length).padStart(2, '0')} IMAGES</b></header>
+          <div className={`commercial-social-grid commercial-social-grid--${group.images.length === 1 ? 'single' : group.images.length <= 3 ? 'compact' : 'bento'}`}>
+            {group.images.map((image, imageIndex) => <button className={`commercial-social-card${imageIndex === 0 ? ' commercial-social-card--feature' : ''}`} type="button" onClick={() => setSelectedImage({ image, alt: `${group.title} ${section.number === '02' ? '海报' : section.number === '03' ? '包装设计' : section.number === '04' ? '展会物料' : '社媒设计'} ${imageIndex + 1}` })} aria-label={`放大查看 ${group.title} ${section.number === '02' ? '海报' : section.number === '03' ? '包装设计' : section.number === '04' ? '展会物料' : '社媒设计'} ${imageIndex + 1}`} key={image}>
+              <img src={image} alt={`${group.title} ${section.number === '02' ? '海报' : section.number === '03' ? '包装设计' : section.number === '04' ? '展会物料' : '社媒设计'} ${imageIndex + 1}`} loading="lazy" decoding="async" />
+              <span><i>{String(imageIndex + 1).padStart(2, '0')}</i><b>VIEW ↗</b></span>
+            </button>)}
+          </div>
+        </article>)}
+      </div> : <div className="commercial-design-placeholder"><span>图片待上传</span><small>IMAGES COMING SOON</small></div>}
+    </section>)}
+    {selectedImage && <div className="work-detail-lightbox" role="dialog" aria-modal="true" aria-label="社媒图片放大预览" onClick={() => setSelectedImage(null)}>
+      <button className="work-detail-lightbox-close" type="button" onClick={() => setSelectedImage(null)} aria-label="关闭放大预览">×</button>
+      <img src={selectedImage.image} alt={selectedImage.alt} onClick={(event) => event.stopPropagation()} />
+    </div>}
+  </div></section>
+}
 function DesignCategoryPage({ category }) {
-  return <main className={`secondary-page category-page ${category.slug === 'website-design' ? 'category-page--website' : ''}`}>
+  return <main className={`secondary-page category-page category-page--${category.slug}`}>
     <FloatingHeader active="design" />
     <section className="secondary-hero category-hero"><div className="shell">
       <p className="secondary-kicker">DESIGN WORK / {category.english}</p>
       <h1>{category.title}</h1>
       <p>{category.description}</p>
     </div></section>
-    <section className="category-showcase"><div className="shell">
-      {category.works.map((image, index) => <figure key={image}><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>0{index + 1}</span><span>{category.english}</span></figcaption></figure>)}
-    </div></section>
+    {category.slug === 'commercial-design' ? <CommercialDesignShowcase /> : <section className="category-showcase"><div className="shell">
+      {category.works.map((image, index) => category.slug === 'detail-page-design'
+        ? <a className="category-preview-link" href={`/${category.slug}?work=${index + 1}`} aria-label={`查看${category.title}作品 ${index + 1}`} key={image}><figure><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{category.english}</span></figcaption></figure></a>
+        : <figure key={image}><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{category.english}</span></figcaption></figure>)}
+    </div></section>}
     <footer className="secondary-footer"><div className="shell"><a href="/design">← 返回平面作品</a><a href="/#contact">联系我 ↗</a></div></footer>
+  </main>
+}
+
+function MainImageCarousel({ images, alt }) {
+  const visibleCount = Math.min(4, images.length)
+  const [activeImage, setActiveImage] = useState(0)
+  const [slideDirection, setSlideDirection] = useState('next')
+  const [enlargedImage, setEnlargedImage] = useState(null)
+  useEffect(() => {
+    if (!enlargedImage) return undefined
+    const previousOverflow = document.body.style.overflow
+    const closeOnEscape = (event) => { if (event.key === 'Escape') setEnlargedImage(null) }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [enlargedImage])
+  const previous = () => { setSlideDirection('previous'); setActiveImage((current) => (current - 1 + images.length) % images.length) }
+  const next = () => { setSlideDirection('next'); setActiveImage((current) => (current + 1) % images.length) }
+  const visibleImages = Array.from({ length: visibleCount }, (_, offset) => images[(activeImage + offset) % images.length])
+  return <div className="work-detail-carousel">
+    <button className="work-detail-carousel-arrow work-detail-carousel-arrow--previous" type="button" onClick={previous} aria-label="上一张主图">←</button>
+    <div className={`work-detail-carousel-grid work-detail-carousel-grid--${slideDirection}`} key={activeImage}>{visibleImages.map((image, imageIndex) => <button className="work-detail-carousel-item" type="button" onClick={() => setEnlargedImage(image)} aria-label={`放大查看${alt} ${(activeImage + imageIndex) % images.length + 1}`} key={`${image}-${imageIndex}`}><img src={image} alt={`${alt} ${(activeImage + imageIndex) % images.length + 1}`} decoding="async" /></button>)}</div>
+    <button className="work-detail-carousel-arrow work-detail-carousel-arrow--next" type="button" onClick={next} aria-label="下一张主图">→</button>
+    <span className="work-detail-carousel-count">{String(activeImage + 1).padStart(2, '0')} / {String(images.length).padStart(2, '0')}</span>
+    {enlargedImage && <div className="work-detail-lightbox" role="dialog" aria-modal="true" aria-label="主图放大预览" onClick={() => setEnlargedImage(null)}>
+      <button className="work-detail-lightbox-close" type="button" onClick={() => setEnlargedImage(null)} aria-label="关闭放大预览">×</button>
+      <img src={enlargedImage} alt={`${alt} 放大预览`} onClick={(event) => event.stopPropagation()} />
+    </div>}
+  </div>
+}
+
+function APlusCarousel({ images, alt }) {
+  const [activeImage, setActiveImage] = useState(0)
+  const [slideDirection, setSlideDirection] = useState('next')
+  const previous = () => { setSlideDirection('previous'); setActiveImage((current) => (current - 1 + images.length) % images.length) }
+  const next = () => { setSlideDirection('next'); setActiveImage((current) => (current + 1) % images.length) }
+  return <div className="aplus-carousel">
+    <img className={`aplus-carousel-image aplus-carousel-image--${slideDirection}`} src={images[activeImage]} alt={`${alt} ${activeImage + 1}`} decoding="async" key={images[activeImage]} />
+    <button className="aplus-carousel-arrow aplus-carousel-arrow--previous" type="button" onClick={previous} aria-label="上一张 A+ 图片">←</button>
+    <button className="aplus-carousel-arrow aplus-carousel-arrow--next" type="button" onClick={next} aria-label="下一张 A+ 图片">→</button>
+    <span className="aplus-carousel-count">{String(activeImage + 1).padStart(2, '0')} / {String(images.length).padStart(2, '0')}</span>
+  </div>
+}
+
+function APlusGallery({ images, carouselGroups = [], alt }) {
+  const groupedIndexes = new Set(carouselGroups.flat())
+  const groupStarts = new Map(carouselGroups.map((group) => [group[0], group]))
+  return <div className="work-detail-gallery work-detail-gallery--aplus">{images.map((image, imageIndex) => {
+    const group = groupStarts.get(imageIndex)
+    if (group) return <APlusCarousel images={group.map((index) => images[index])} alt={`${alt} 轮播`} key={`carousel-${imageIndex}`} />
+    if (groupedIndexes.has(imageIndex)) return null
+    return <img src={image} alt={`${alt} ${imageIndex + 1}`} loading={imageIndex > 1 ? 'lazy' : undefined} decoding="async" key={image} />
+  })}</div>
+}
+
+function DesignWorkDetailPage({ category, sections, index }) {
+  const number = String(index + 1).padStart(2, '0')
+  return <main className={`secondary-page category-page category-page--${category.slug} work-detail-page`}>
+    <FloatingHeader active="design" />
+    <section className="secondary-hero category-hero work-detail-hero"><div className="shell">
+      <p className="secondary-kicker">{category.english} / WORK {number}</p>
+      <h1>作品 {number}</h1>
+      <p>完整设计画面</p>
+    </div></section>
+    <section className="work-detail-showcase"><div className="shell">
+      {sections.map((section) => <div className="work-detail-section" key={section.label}>
+        <div className="work-detail-section-title"><span>{section.label}</span><span>{section.images.length} IMAGES</span></div>
+        {section.images.length === 0
+          ? <div className={`work-detail-empty work-detail-empty--${section.layout}`}><span>图片待上传</span><small>IMAGES COMING SOON</small></div>
+          : section.layout === 'stack'
+            ? <MainImageCarousel images={section.images} alt={`${category.title}作品 ${index + 1} 主图`} />
+            : section.layout === 'aplus'
+              ? <APlusGallery images={section.images} carouselGroups={section.carouselGroups} alt={`${category.title}作品 ${index + 1} A+`} />
+              : <div className={`work-detail-gallery work-detail-gallery--${section.layout ?? 'single'}`}>{section.images.map((image, imageIndex) => <img src={image} alt={`${category.title}作品 ${index + 1} ${section.label} ${imageIndex + 1}`} loading={imageIndex > 1 ? 'lazy' : undefined} decoding="async" key={image} />)}</div>}
+      </div>)}
+    </div></section>
+    <footer className="secondary-footer"><div className="shell"><a href={`/${category.slug}`}>← 返回{category.title}</a><a href="/#contact">联系我 ↗</a></div></footer>
   </main>
 }
 
@@ -267,7 +497,60 @@ function SecondaryPage({ type }) {
   </main>
 }
 
+function usePortfolioMotion() {
+  useLayoutEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+
+    gsap.registerPlugin(ScrollTrigger)
+    const context = gsap.context(() => {
+      const hero = document.querySelector('.orbit-stage')
+      const flower = hero?.querySelector('.orbit-flower')
+      const header = document.querySelector('.floating-header')
+
+      if (hero) {
+        const opening = gsap.timeline({ defaults: { ease: 'power4.out' } })
+        opening
+          .fromTo(header, { autoAlpha: 0, y: -34 }, { autoAlpha: 1, y: 0, duration: .85 }, 0)
+          .fromTo('.orbit-word-inner', { yPercent: 132, scaleX: .66, skewX: -9, transformOrigin: 'left bottom' }, { yPercent: 0, scaleX: 1, skewX: 0, duration: 1.8 }, .18)
+          .fromTo(flower, { clipPath: 'inset(100% 0 0 0)', xPercent: -50, y: 105, scale: .82 }, { clipPath: 'inset(0% 0 0 0)', xPercent: -50, y: 0, scale: 1, duration: 1.65 }, .34)
+          .fromTo('.orbit-sticker', { autoAlpha: 0, scale: .25, rotate: -24 }, { autoAlpha: 1, scale: 1, rotate: 0, duration: .9, stagger: .12, ease: 'expo.out' }, .92)
+          .fromTo('.orbit-corner', { autoAlpha: 0, y: 32 }, { autoAlpha: 1, y: 0, duration: .9, stagger: .1 }, 1.12)
+      }
+
+      const sectionConfigs = [
+        { selector: '.about', cards: ['.portrait', '.about-intro', '.about-labels', '.about-profile', '.tool-card'], images: ['.portrait-photo'] },
+        { selector: '.work', cards: ['.ag-panel'], images: ['.ag-media img'] },
+        { selector: '.strength', cards: ['.strength-grid article'], images: [] },
+        { selector: '.scroll-stack', cards: ['.scroll-stack__heading', '.scroll-stack__dots'], images: [] },
+        { selector: '.contact', cards: ['.contact-cta', '.contact-tags span', '.footer-bottom'], images: [] },
+      ]
+
+      sectionConfigs.forEach(({ selector, cards, images }) => {
+        const section = document.querySelector(selector)
+        if (!section) return
+        const title = section.querySelector('h2')
+        const cardNodes = cards.flatMap(item => gsap.utils.toArray(item, section))
+        const imageNodes = images.flatMap(item => gsap.utils.toArray(item, section))
+
+        if (title) {
+          gsap.fromTo(title, { autoAlpha: 0, yPercent: 118, scaleX: .72, skewX: -7, clipPath: 'inset(0 0 100% 0)', transformOrigin: 'left bottom' }, { autoAlpha: 1, yPercent: 0, scaleX: 1, skewX: 0, clipPath: 'inset(0 0 0% 0)', duration: 1.65, ease: 'power4.out', scrollTrigger: { trigger: section, start: 'top 71%', once: true } })
+        }
+
+        if (cardNodes.length) {
+          gsap.fromTo(cardNodes, { autoAlpha: 0, y: 94, rotateX: 10, transformOrigin: 'center top' }, { autoAlpha: 1, y: 0, rotateX: 0, duration: 1.25, stagger: .14, ease: 'power4.out', scrollTrigger: { trigger: section, start: 'top 63%', once: true } })
+        }
+
+        imageNodes.forEach(image => {
+          gsap.fromTo(image, { scale: 1.18, yPercent: 9 }, { scale: 1, yPercent: -4, ease: 'none', scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 1.35 } })
+        })
+      })
+    })
+
+    return () => context.revert()
+  }, [])
+}
 function App() {
+  usePortfolioMotion()
   return <main>
     <FloatingHeader />
     <OrbitHero />
@@ -291,33 +574,28 @@ function App() {
             <img className="sticker sticker-stamp" src="/assets/sticker-cat-stamp.png" alt="" aria-hidden="true" />
             <figcaption className="polaroid-caption">
               <div className="echo-name-sticker"><img src="/assets/echo-name-tag.png" alt="" aria-hidden="true" /><small>HELLO, I AM</small><strong>Echo</strong></div>
-              <div className="portrait-contact"><b>CONTACT ME</b><a href="tel:15975246069">+86 159 7524 6069</a><a href="mailto:657158659@qq.com">657158659@qq.com</a></div>
+              <div className="portrait-contact"><b>CONTACT ME</b><a href="tel:15975246069">+86 159 7524 6069</a><a href="mailto:echolin927@gmail.com">echolin927@gmail.com</a></div>
             </figcaption>
           </figure>
           <div className="about-copy">
             <div className="about-intro note-card">
               <img className="stacked-paper-note" src="/assets/paperclip-stars-note.png" alt="" aria-hidden="true" />
-              <p className="intro">你好，我是 <b>Echo</b>。<br/>一位专注视觉表达与动态内容的设计师。</p>
-              <p className="muted">拥有 8 年设计与团队管理经验，熟悉电商视觉、品牌设计、3D 渲染和视频后期流程。擅长从色彩、材质与空间出发，把商业目标转化为清晰、有辨识度的视觉内容。</p>
+              <p className="intro"><span className="intro-lead">你好，我是<b>Echo</b></span><span className="intro-rest">8 年海外电商视觉设计师<br/>三维动画 + 平面 + 视频全能<br/>擅长 AIGC 绘图、模型训练，用 AI 赋能产品视觉全案。</span></p>
             </div>
             <div className="about-labels" aria-label="专业方向"><span>3D MOTION</span><span>BRAND VISUAL</span><span>AI CREATIVE</span></div>
-            <div className="experience-wrap">
-              <div className="experience-list">
-              <div className="experience-title"><span>WORK EXPERIENCE</span><span>2020 — 2026</span></div>
-              {experience.map((item, index) => <article className="experience-item" key={item.period}>
-                <span className="experience-number">0{index + 1}</span>
-                <time>{item.period}</time>
-                <div><h3>{item.company}</h3><strong>{item.role}</strong><p>{item.detail}</p></div>
-              </article>)}
-              </div>
-            </div>
+            <section className="about-profile" aria-label="个人简介">
+              <span className="about-profile-kicker">PROFILE / 个人简介</span>
+              <p>拥有 8 年实战经验的全能型设计师，深耕海外电商视觉领域，能力覆盖三维动画、平面视觉与视频全案制作。</p>
+              <p>过往任职期间，我担任过设计主管，具备团队搭建、工作统筹、设计规范制定与新人培训经验，独立操盘海外品牌 VI、产品包装、社媒宣传视频、产品动画、亚马逊详情视觉等项目，熟悉海外电商平台视觉逻辑。</p>
+              <p>除 PS、AI、Pr、Ae、犀牛、Keyshot 等传统设计工具外，我持续探索 AI 在设计领域的落地应用，熟练运用 AIGC 进行图像生成、素材创作，参与模型微调训练，使用 Codex 实现脚本自动化，打通「AI 创意生成 - 三维建模渲染 - 视频剪辑输出」的工作流，用 AI 工具放大设计产能，快速响应市场变化，为海外品牌打造兼具美感与转化力的视觉方案。</p>
+            </section>
           </div>
         </div>
         <Toolkit />
       </div>
     </section>
 
-    <section className="work section" id="work"><div className="shell"><div className="section-kicker"><span>02</span><span>SELECTED WORKS</span></div><div className="work-heading"><h2>SELECTED<br/><i>WORKS</i></h2><p>以设计解决问题，<br/>以视觉留下余韵。</p></div><AccordionGallery items={galleryProjects} defaultIndex={1} expandRatio={.48} accentColor="#fd86db" height={620} /></div></section>
+    <section className="work section" id="work"><div className="shell"><div className="section-kicker"><span>02</span><span>SELECTED WORKS</span></div><div className="work-heading"><h2>SELECTED<br/><i>WORKS</i></h2><div className="work-heading-side"><p>以设计解决问题，<br/>以视觉留下余韵。</p><a className="work-more-link" href="/design">查看更多作品 <b>↗</b></a></div></div><AccordionGallery items={galleryProjects} defaultIndex={1} expandRatio={.48} accentColor="#fd86db" height={620} /></div></section>
 
     <section className="strength section shell" id="strength"><div className="section-kicker"><span>03</span><span>EXPERTISE</span></div><div className="strength-heading"><h2>BUILDING<br/>VISUAL <i>IMPACT</i></h2><p>在理性的方法中，保留感性的判断。</p></div><div className="strength-grid">{strengths.map(([number, title, text]) => <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div><b>↗</b></article>)}</div></section>
     <MotionReels />
@@ -330,14 +608,14 @@ function App() {
         </div>
         <div className="contact-cta">
           <p>从一个想法到完整落地，<br/>一起做有辨识度、也真正有效的设计。</p>
-          <a href="mailto:657158659@qq.com">LET'S TALK <b>↗</b></a>
+          <a href="mailto:echolin927@gmail.com">LET'S TALK <b>↗</b></a>
         </div>
         <div className="contact-tags" aria-label="可合作的设计方向">
           <span>Product Design</span><span>Social Media</span><span>3D Motion</span><span>Brand Visual</span>
           <span>Art Direction</span><span>Websites</span><span>AI Creative</span><span>Video Editing</span>
         </div>
         <div className="footer-bottom">
-          <div><a href="mailto:657158659@qq.com">657158659@qq.com</a><a href="tel:15975246069">+86 159 7524 6069</a></div>
+          <div><a href="mailto:echolin927@gmail.com">echolin927@gmail.com</a><a href="tel:15975246069">+86 159 7524 6069</a></div>
           <p>© 2026 ECHO LIN<br/>VISUAL PORTFOLIO</p>
         </div>
       </div>
@@ -347,8 +625,14 @@ function App() {
 
 const page = window.location.pathname.split('/').pop().replace(/\.html$/, '')
 const currentCategory = designCategories.find((category) => category.slug === page)
+const requestedWork = Number.parseInt(new URLSearchParams(window.location.search).get('work'), 10)
+const currentWorkIndex = Number.isInteger(requestedWork) ? requestedWork - 1 : -1
+const currentWork = currentCategory?.slug === 'detail-page-design' ? currentCategory.works[currentWorkIndex] : undefined
+const currentWorkSections = currentWork ? detailWorkSections[currentWorkIndex] ?? emptyDetailWorkSections : undefined
 const content = currentCategory
-  ? <DesignCategoryPage category={currentCategory} />
+  ? currentWorkSections
+    ? <DesignWorkDetailPage category={currentCategory} sections={currentWorkSections} index={currentWorkIndex} />
+    : <DesignCategoryPage category={currentCategory} />
   : page === 'design'
   ? <SecondaryPage type="design" />
   : page === 'video'

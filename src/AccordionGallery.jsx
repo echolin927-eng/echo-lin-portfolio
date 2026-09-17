@@ -33,10 +33,10 @@ export default function AccordionGallery({ items, defaultIndex = 0, expandRatio 
 
   const activate = (index) => setActive(index)
   return <div className="accordion-gallery" ref={rootRef} style={{ '--ag-accent': accentColor, height }} role="list" aria-label="精选项目">
-    {items.map((item, index) => <button key={item.label} ref={node => { panels.current[index] = node }} className={`ag-panel${active === index ? ' ag-active' : ''}`} onMouseEnter={() => activate(index)} onFocus={() => activate(index)} onClick={() => activate(index)} onKeyDown={event => { if (event.key === 'ArrowRight') activate((index + 1) % items.length); if (event.key === 'ArrowLeft') activate((index - 1 + items.length) % items.length) }} aria-label={`查看 ${item.label}`} aria-current={active === index} role="listitem">
+    {items.map((item, index) => <a href={item.href} key={item.label} ref={node => { panels.current[index] = node }} className={`ag-panel${active === index ? ' ag-active' : ''}`} onMouseEnter={() => activate(index)} onFocus={() => activate(index)} onClick={() => activate(index)} onKeyDown={event => { if (event.key === 'ArrowRight') activate((index + 1) % items.length); if (event.key === 'ArrowLeft') activate((index - 1 + items.length) % items.length) }} aria-label={`查看 ${item.label}`} aria-current={active === index} role="listitem">
       <span className="ag-frame"><span className="ag-media" ref={node => { media.current[index] = node }}><img src={item.image} alt={item.alt || item.label} /></span><span className="ag-overlay" /></span>
       <span className="ag-index">0{index + 1}</span>
       <span className="ag-label" ref={node => { labels.current[index] = node }}><i /><span><small>{item.type}</small><strong>{item.label}</strong><em>{item.subtitle}</em></span><b>↗</b></span>
-    </button>)}
+    </a>)}
   </div>
 }

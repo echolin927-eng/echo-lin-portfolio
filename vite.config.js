@@ -14,6 +14,7 @@ export default defineConfig({
         amazonStoreDesign: resolve(import.meta.dirname, 'amazon-store-design.html'),
         detailPageDesign: resolve(import.meta.dirname, 'detail-page-design.html'),
         commercialDesign: resolve(import.meta.dirname, 'commercial-design.html'),
+        viDesign: resolve(import.meta.dirname, 'vi-design.html'),
       },
     },
   },

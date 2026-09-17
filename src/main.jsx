@@ -23,11 +23,11 @@ const strengths = [
 ]
 
 const galleryProjects = [
-  { image: '/assets/work-showcase-01-new.png', label: 'TFIT NOVA MAX', type: '3D MOTION / PRODUCT', subtitle: '产品 3D 渲染与动态视觉' },
-  { image: '/assets/work-showcase-02-new.png', label: 'PRODUCT STORIES', type: 'E-COMMERCE / A+ CONTENT', subtitle: '从卖点到场景的视觉叙事' },
-  { image: '/assets/work-showcase-01.jpg', label: 'AMAZON A+ PAGE', type: 'E-COMMERCE / DETAIL', subtitle: '跨境电商详情页视觉系统' },
-  { image: '/assets/work-showcase-04.jpg', label: 'BRAND IDENTITY', type: 'BRAND / VISUAL', subtitle: '从品牌语言到触点表达' },
-  { image: '/assets/work-showcase-05.jpg', label: 'DIGITAL EXPERIENCE', type: 'WEB / INTERFACE', subtitle: '数字界面的视觉体验' },
+  { image: '/assets/work-showcase-01-new.png', label: 'TFIT NOVA MAX', type: '3D MOTION / PRODUCT', subtitle: '产品 3D 渲染与动态视觉', href: '/design' },
+  { image: '/assets/work-showcase-02-new.png', label: 'PRODUCT STORIES', type: 'E-COMMERCE / A+ CONTENT', subtitle: '从卖点到场景的视觉叙事', href: '/detail-page-design?work=8' },
+  { image: '/assets/work-showcase-01.jpg', label: 'AMAZON A+ PAGE', type: 'E-COMMERCE / DETAIL', subtitle: '跨境电商详情页视觉系统', href: '/detail-page-design?work=1' },
+  { image: '/assets/work-showcase-04.jpg', label: 'BRAND IDENTITY', type: 'BRAND / VISUAL', subtitle: '从品牌语言到触点表达', href: '/amazon-store-design' },
+  { image: '/assets/work-showcase-05.jpg', label: 'DIGITAL EXPERIENCE', type: 'WEB / INTERFACE', subtitle: '数字界面的视觉体验', href: '/commercial-design' },
 ]
 
 const experience = [
@@ -84,25 +84,29 @@ function Toolkit() {
 const girlImage = '/assets/echo-girl.png'
 const girlRevealImage = '/assets/echo-girl-reveal.png'
 
-function FloatingHeader({ active = 'home' }) {
-  return <header className="floating-header">
-    <a className="orbit-mark" href="/" aria-label="Echo 首页"><span /><span /><span /><span /></a>
-    <nav className="orbit-nav" aria-label="主导航">
-      <a className={active === 'home' ? 'is-active' : ''} href="/">Home丨首页</a>
-      <div className="orbit-nav-dropdown">
-        <a className={active === 'design' ? 'is-active' : ''} href="/design">Design work丨平面作品</a>
-        <div className="orbit-nav-menu" aria-label="平面作品分类">
-          <a href="/website-design">网站设计</a>
-          <a href="/amazon-store-design">亚马逊旗舰店设计</a>
-          <a href="/detail-page-design">详情页设计</a>
-          <a href="/commercial-design">商业设计</a>
+function FloatingHeader({ active = 'home', backHref }) {
+  return <>
+    <header className="floating-header">
+      <a className="orbit-mark" href="/" aria-label="Echo 首页"><span /><span /><span /><span /></a>
+      <nav className="orbit-nav" aria-label="主导航">
+        <a className={active === 'home' ? 'is-active' : ''} href="/">Home丨首页</a>
+        <div className="orbit-nav-dropdown">
+          <a className={active === 'design' ? 'is-active' : ''} href="/design">Design work丨平面作品</a>
+          <div className="orbit-nav-menu" aria-label="平面作品分类">
+            <a href="/website-design">网站设计</a>
+            <a href="/amazon-store-design">亚马逊旗舰店设计</a>
+            <a href="/detail-page-design">详情页设计</a>
+            <a href="/commercial-design">商业设计</a>
+            <a href="/vi-design">VI 设计</a>
+          </div>
         </div>
-      </div>
-      <a className={active === 'video' ? 'is-active' : ''} href="/video">video丨视频</a>
-      <a href="/#contact">Contact丨联系</a>
-    </nav>
-    <a href="/#contact" className="orbit-pill">CONTACT <b>↗</b></a>
-  </header>
+        <a className={active === 'video' ? 'is-active' : ''} href="/video">video丨视频</a>
+        <a href="/#contact">Contact丨联系</a>
+      </nav>
+      <a href="/#contact" className="orbit-pill">CONTACT <b>↗</b></a>
+    </header>
+    {backHref && <a className="floating-back" href={backHref} aria-label="返回上一层页面"><span aria-hidden="true">←</span><b>返回</b></a>}
+  </>
 }
 
 const marqueeWords = ['VISUAL DESIGN', 'ART DIRECTION', 'BRAND IDENTITY', '3D MOTION', 'AI CREATIVE']
@@ -175,7 +179,7 @@ const motionReels = [
   { src: '/assets/motion-reel-02.mp4', poster: '/assets/reel-cover-02.jpg', kicker: '02. PRODUCT / CONTENT', name: 'STORIES IN FRAME', detail: '用镜头和场景，把产品卖点变成更具沉浸感的内容叙事。' },
   { src: '/assets/motion-reel-03.mp4', poster: '/assets/reel-cover-03.png', kicker: '03. BRAND / DIGITAL', name: 'BRAND IN MOTION', detail: '让品牌语言在动态、网页与每一次数字触点中保持一致。' },
   { poster: '/assets/reel-cover-04.png', kicker: '04. E-COMMERCE / A+', name: 'DETAILS THAT SELL', detail: '为跨境电商建立更清晰、更有感知力的商品详情体验。' },
-  { poster: '/assets/reel-cover-05.jpg', kicker: '05. WEB / EXPERIENCE', name: 'DIGITAL RHYTHM', detail: '以有节奏的动态交互，增强品牌网站的内容层次与记忆点。' },
+  { src: '/assets/amazon-ai-prompts.mp4', poster: '/assets/amazon-ai-prompts-cover.png', kicker: '05. AI / E-COMMERCE', name: 'AI生成小风扇场景视频', detail: 'AI 辅助电商视觉创作，演示亚马逊主图与 A+ 内容的提示词生成流程。' },
 ]
 
 const videoStoryboards = [
@@ -189,6 +193,7 @@ function MotionReels() { return <div id="reels"><ScrollStack items={motionReels}
 
 function VideoCardShowcase() {
   const videos = motionReels.filter((item) => item.src)
+  const stackedVideos = videos.filter((_, index) => index !== 1)
   const [activeVideo, setActiveVideo] = useState(null)
 
   useEffect(() => {
@@ -207,8 +212,8 @@ function VideoCardShowcase() {
       <div className="shell video-card-layout">
         <div className="video-card-intro"><span>SELECT A CARD</span><h2>点击卡片<br/><i>播放视频</i></h2><p>卡片会自动轮换，也可以将鼠标停在卡片上仔细选择。</p></div>
         <div className="video-card-stage">
-          <CardSwap width={774} height={487} cardDistance={66} verticalDistance={120} delay={5000} pauseOnHover skewAmount={3} easing="linear" onCardClick={(index) => setActiveVideo(videos[index])}>
-            {videos.map((video, index) => <Card className="video-swap-card" key={video.src} role="button" tabIndex="0" aria-label={`播放 ${video.name}`} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setActiveVideo(video) }}>
+          <CardSwap width={774} height={487} cardDistance={66} verticalDistance={120} delay={5000} pauseOnHover skewAmount={3} easing="linear" onCardClick={(index) => setActiveVideo(stackedVideos[index])}>
+            {stackedVideos.map((video, index) => <Card className="video-swap-card" key={video.src} role="button" tabIndex="0" aria-label={`播放 ${video.name}`} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setActiveVideo(video) }}>
               <img src={video.poster} alt="" />
               <span className="video-swap-shade" />
               <span className="video-swap-number">0{index + 1}</span>
@@ -216,6 +221,20 @@ function VideoCardShowcase() {
               <span className="video-swap-play">▶</span>
             </Card>)}
           </CardSwap>
+        </div>
+      </div>
+    </section>
+    <section className="video-library" aria-labelledby="video-library-title">
+      <div className="shell">
+        <div className="video-library-heading">
+          <span>ALL VIDEOS / 全部视频</span>
+          <h2 id="video-library-title">VIDEO <i>COLLECTION</i></h2>
+        </div>
+        <div className="video-library-grid">
+          {videos.map((video, index) => <article className="video-library-item" key={video.src}>
+            <video src={video.src} poster={video.poster} controls playsInline preload="none" aria-label={video.name} />
+            <div><small>{String(index + 1).padStart(2, '0')} · {video.kicker}</small><h3>{video.name}</h3><p>{video.detail}</p></div>
+          </article>)}
         </div>
       </div>
     </section>
@@ -236,8 +255,9 @@ function VideoCardShowcase() {
 const designCategories = [
   { slug: 'website-design', number: '01', title: '网站设计', english: 'WEBSITE DESIGN', image: '/assets/design-cover-website.jpg', description: '品牌官网与数字界面的视觉体验。', works: ['/assets/website-design-08.jpg', '/assets/website-design-09.jpg', '/assets/website-design-10.jpg', '/assets/website-design-11.jpg'] },
   { slug: 'amazon-store-design', number: '02', title: '亚马逊旗舰店设计', english: 'AMAZON FLAGSHIP STORE', image: '/assets/design-cover-amazon-store.jpg', description: '围绕品牌与产品建立完整的店铺视觉。', works: ['/assets/amazon-store-01.jpg', '/assets/amazon-store-02.jpg', '/assets/amazon-store-03.jpg', '/assets/amazon-store-04.jpg', '/assets/amazon-store-05.jpg', '/assets/amazon-store-06.jpg', '/assets/amazon-store-07.jpg', '/assets/amazon-store-08.jpg', '/assets/amazon-store-09.jpg', '/assets/amazon-store-10.jpg'] },
-  { slug: 'detail-page-design', number: '03', title: '详情页设计', english: 'PRODUCT DETAIL PAGE', image: '/assets/design-cover-detail-page.jpg', description: '从产品卖点到场景化内容的清晰表达。', works: ['/assets/detail-preview-01.jpg', '/assets/detail-preview-02.png', '/assets/detail-preview-03.jpg', '/assets/detail-preview-04.png', '/assets/detail-preview-05-foldable-headphones.jpg', '/assets/detail-preview-06-aebar-blueberry.png', '/assets/detail-preview-07-cat-fountain.png', '/assets/detail-preview-08.png'] },
+  { slug: 'detail-page-design', number: '03', title: '详情页设计', english: 'PRODUCT DETAIL PAGE', image: '/assets/design-cover-detail-page.jpg', description: '从产品卖点到场景化内容的清晰表达。', works: ['/assets/detail-preview-01.jpg', '/assets/detail-preview-02.png', '/assets/detail-preview-03.jpg', '/assets/detail-preview-04.png', '/assets/detail-preview-05-foldable-headphones.jpg', '/assets/detail-preview-06-aebar-blueberry.png', '/assets/detail-preview-07-cat-fountain.png', '/assets/detail-preview-08-handheld-fan.jpg'] },
   { slug: 'commercial-design', number: '04', title: '商业设计', english: 'COMMERCIAL DESIGN', image: '/assets/design-cover-commercial.jpg', description: '品牌活动、视觉传播与商业内容设计。', works: ['/assets/work-showcase-04.jpg', '/assets/work-showcase-05.jpg', '/assets/work-showcase-02.jpg'] },
+  { slug: 'vi-design', number: '05', title: 'VI 设计', english: 'VISUAL IDENTITY', image: '/assets/vi-design/vi-design-01.jpg', description: '从品牌理念到视觉规范，构建统一而鲜明的品牌识别系统。', works: Array.from({ length: 23 }, (_, index) => `/assets/vi-design/vi-design-${String(index + 1).padStart(2, '0')}.jpg`) },
 ]
 
 const detailWorkSections = {
@@ -296,7 +316,25 @@ const detailWorkSections = {
     label: 'A+ CONTENT / A+ 设计',
     layout: 'aplus',
     images: ['/assets/detail-work-06-aplus-01.jpg', '/assets/detail-work-06-aplus-02.jpg', '/assets/detail-work-06-aplus-03.jpg', '/assets/detail-work-06-aplus-04.jpg', '/assets/detail-work-06-aplus-05.jpg', '/assets/detail-work-06-aplus-06.jpg'],
-  }]
+  }],
+  6: [{
+    label: 'MAIN IMAGES / 主图',
+    layout: 'stack',
+    images: ['/assets/detail-work-07-main-01.png', '/assets/detail-work-07-main-02.png', '/assets/detail-work-07-main-03.png', '/assets/detail-work-07-main-04.png', '/assets/detail-work-07-main-05.png', '/assets/detail-work-07-main-06.png'],
+  }, {
+    label: 'A+ CONTENT / A+ 设计',
+    layout: 'aplus',
+    images: [],
+  }],
+  7: [{
+    label: 'MAIN IMAGES / 主图',
+    layout: 'stack',
+    images: ['/assets/detail-work-08-main-01.png', '/assets/detail-work-08-main-03.jpg', '/assets/detail-work-08-main-04.jpg', '/assets/detail-work-08-main-05.jpg', '/assets/detail-work-08-main-02.jpg', '/assets/detail-work-08-main-06.jpg', '/assets/detail-work-08-main-07.jpg', '/assets/detail-work-08-main-08.jpg', '/assets/detail-work-08-main-09.jpg'],
+  }, {
+    label: 'A+ CONTENT / A+ 设计',
+    layout: 'aplus',
+    images: ['/assets/detail-work-08-aplus-01.jpg', '/assets/detail-work-08-aplus-02.jpg', '/assets/detail-work-08-aplus-03.jpg', '/assets/detail-work-08-aplus-04.jpg', '/assets/detail-work-08-aplus-05.jpg', '/assets/detail-work-08-aplus-06.jpg', '/assets/detail-work-08-aplus-07.jpg'],
+  }],
 }
 
 const commercialDesignSections = [
@@ -384,7 +422,7 @@ function CommercialDesignShowcase() {
 }
 function DesignCategoryPage({ category }) {
   return <main className={`secondary-page category-page category-page--${category.slug}`}>
-    <FloatingHeader active="design" />
+    <FloatingHeader active="design" backHref="/design" />
     <section className="secondary-hero category-hero"><div className="shell">
       <p className="secondary-kicker">DESIGN WORK / {category.english}</p>
       <h1>{category.title}</h1>
@@ -457,7 +495,7 @@ function APlusGallery({ images, carouselGroups = [], alt }) {
 function DesignWorkDetailPage({ category, sections, index }) {
   const number = String(index + 1).padStart(2, '0')
   return <main className={`secondary-page category-page category-page--${category.slug} work-detail-page`}>
-    <FloatingHeader active="design" />
+    <FloatingHeader active="design" backHref={`/${category.slug}`} />
     <section className="secondary-hero category-hero work-detail-hero"><div className="shell">
       <p className="secondary-kicker">{category.english} / WORK {number}</p>
       <h1>作品 {number}</h1>
@@ -482,7 +520,7 @@ function DesignWorkDetailPage({ category, sections, index }) {
 function SecondaryPage({ type }) {
   const isDesign = type === 'design'
   return <main className="secondary-page">
-    <FloatingHeader active={type} />
+    <FloatingHeader active={type} backHref="/" />
     <section className="secondary-hero">
       <div className="shell">
         <p className="secondary-kicker">{isDesign ? 'DESIGN WORK / 平面作品' : 'VIDEO / 视频作品'}</p>

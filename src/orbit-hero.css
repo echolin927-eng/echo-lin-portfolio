@@ -14,8 +14,12 @@ body{background:#161616}
 
 /* Keep navigation outside the hero containment so it stays on the viewport. */
 .floating-header{--soft:cubic-bezier(.25,.8,.28,1);position:fixed;inset:0 0 auto;z-index:100;height:calc(4.5dvh + clamp(34px,5.2dvh,66px));background:rgba(22,22,22,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08);color:#fff;font-family:"DM Mono","Microsoft YaHei",monospace}
+.floating-back{position:fixed;z-index:99;top:calc(4.5dvh + clamp(34px,5.2dvh,66px) + 20px);left:clamp(18px,3.85vw,74px);display:inline-flex;align-items:center;gap:12px;min-height:42px;padding:0 18px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(22,22,22,.72);box-shadow:0 10px 30px rgba(0,0,0,.2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#fff;font:11px "DM Mono","Microsoft YaHei",monospace;letter-spacing:.08em;transition:color .25s ease,background .25s ease,border-color .25s ease,transform .25s ease}.floating-back span{color:#fd86db;font-size:18px;line-height:1;transition:transform .25s ease}.floating-back b{font-weight:500}.floating-back:hover{color:#161616;background:#fd86db;border-color:#fd86db;transform:translateY(-2px)}.floating-back:hover span{color:#161616;transform:translateX(-3px)}.floating-back:focus-visible{outline:2px solid #fd86db;outline-offset:4px}
+.floating-back{font-size:13px}
+.floating-back b{font-weight:700}
 html{scroll-padding-top:calc(4.5dvh + clamp(34px,5.2dvh,66px))}
 @media(prefers-reduced-motion:reduce){.floating-header *{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.floating-back,.floating-back span{transition:none!important}}
 
 .marquee-strip{position:relative;z-index:6;width:100%;overflow:hidden;background:#fd86db;color:#161616;border-block:1px solid rgba(22,22,22,.35);padding:15px 0;white-space:nowrap}
 .marquee-track{display:flex;width:max-content;will-change:transform;animation:marquee-scroll 26s linear infinite}
@@ -230,12 +234,13 @@ html{scroll-padding-top:calc(4.5dvh + clamp(34px,5.2dvh,66px))}
 .secondary-hero .shell>p:last-child{margin:38px 0 0;font:13px/1.8 "DM Mono","Microsoft YaHei",monospace;color:#cfc4ca}
 .secondary-content{padding:clamp(70px,10vw,150px) 0;background:radial-gradient(circle at 50% 40%,rgba(80,49,66,.24),transparent 48%),#161616}
 .secondary-footer{padding:34px 0;border-top:1px solid rgba(255,255,255,.16);background:#161616}
-.secondary-footer .shell{display:flex;justify-content:space-between;font:12px "DM Mono","Microsoft YaHei",monospace;letter-spacing:.06em}
-.secondary-footer a{border-bottom:1px solid #fd86db;padding-bottom:7px}
+.secondary-footer .shell{display:flex;justify-content:space-between;font:14px "DM Mono","Microsoft YaHei",monospace;letter-spacing:.06em}
+.secondary-footer a{border-bottom:1px solid #fd86db;padding-bottom:7px;font-weight:700}
 
 @media(max-width:1100px) and (min-width:901px){.orbit-nav{left:9vw}.orbit-pill{right:3vw;padding:0 14px}}
 @media(max-width:900px),(max-aspect-ratio:4/5){
   .floating-header{height:112px}
+  .floating-back{top:132px}
   .orbit-nav{display:flex;top:67px;left:20px;right:20px;justify-content:space-between;gap:clamp(12px,4vw,36px);overflow:visible;padding:0 0 12px;font-size:11px;scrollbar-width:none}
   .orbit-nav::-webkit-scrollbar{display:none}
   .orbit-nav-menu{left:50%;transform:translate(-50%,-8px)}
@@ -271,6 +276,10 @@ html{scroll-padding-top:calc(4.5dvh + clamp(34px,5.2dvh,66px))}
 .category-page--amazon-store-design .category-showcase figcaption{display:none}
 .category-page--amazon-store-design{background-color:#161616;background-image:radial-gradient(circle at 68% 30%,rgba(253,134,219,.24),transparent 34%),linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:auto,8vw 8vw,8vw 8vw;background-attachment:fixed}
 .category-page--amazon-store-design .secondary-hero,.category-page--amazon-store-design .category-showcase,.category-page--amazon-store-design .secondary-footer{background:transparent}
+.category-page--vi-design .category-showcase{background:radial-gradient(circle at 28% 12%,rgba(253,134,219,.12),transparent 28%),#161616}
+.category-page--vi-design .category-showcase .shell{gap:clamp(18px,2.5vw,38px)}
+.category-page--vi-design .category-showcase img{height:auto;max-height:none;object-fit:contain;border-color:rgba(255,255,255,.1)}
+.category-page--vi-design .category-showcase figcaption{padding:10px 2px 0;border-top:0}
 .category-page--detail-page-design .category-showcase .shell{grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,1.4vw,24px)}
 .category-page--detail-page-design .category-preview-link{display:block;min-width:0;color:inherit}
 .category-page--detail-page-design .category-showcase figure{min-width:0}
@@ -363,6 +372,18 @@ html{scroll-padding-top:calc(4.5dvh + clamp(34px,5.2dvh,66px))}
 .video-swap-copy strong{font:400 clamp(32px,3vw,52px)/.9 "DM Serif Display",serif;letter-spacing:-.035em}
 .video-swap-play{position:absolute;right:27px;bottom:27px;display:grid;place-items:center;width:56px;height:56px;padding-left:4px;border:1px solid rgba(255,255,255,.8);border-radius:50%;font-size:15px;background:rgba(15,9,15,.35);backdrop-filter:blur(8px);transition:background .25s,color .25s,transform .25s}
 .video-swap-card:hover .video-swap-play{background:#fd86db;color:#171017;transform:scale(1.08)}
+.video-library{padding:clamp(72px,8vw,140px) 0;background:#161616;border-top:1px solid rgba(255,255,255,.14)}
+.video-library-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:clamp(38px,5vw,72px);padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.18)}
+.video-library-heading>span{font:10px "DM Mono","Microsoft YaHei",monospace;letter-spacing:.11em;color:#fd86db}
+.video-library-heading h2{margin:0;font:400 clamp(48px,6.5vw,112px)/.8 "DM Serif Display","Times New Roman",serif;letter-spacing:-.045em}
+.video-library-heading h2 i{font-weight:400;color:#fd86db}
+.video-library-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,2.5vw,42px)}
+.video-library-item{overflow:hidden;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:#111}
+.video-library-item video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#050505}
+.video-library-item>div{padding:22px 24px 26px}
+.video-library-item small{font:10px "DM Mono",monospace;letter-spacing:.08em;color:#fd86db}
+.video-library-item h3{margin:12px 0 10px;font:400 clamp(28px,2.6vw,48px)/.95 "DM Serif Display","Times New Roman",serif;letter-spacing:-.035em}
+.video-library-item p{margin:0;font:11px/1.75 "DM Mono","Microsoft YaHei",monospace;color:#bfb3b9}
 .video-storyboards{padding:clamp(48px,6vw,100px) 0;background:#111}
 .video-storyboard-list{display:grid;gap:clamp(18px,2.4vw,40px)}
 .video-storyboard-list figure{margin:0;overflow:hidden;background:#e9f2f3;border:1px solid rgba(255,255,255,.14)}
@@ -386,6 +407,9 @@ html{scroll-padding-top:calc(4.5dvh + clamp(34px,5.2dvh,66px))}
   .video-card-intro p{font-size:10px}
   .video-card-stage{height:610px;margin-top:-15px}
   .video-card-stage .card-swap-container{right:50%;bottom:0;transform:translateX(50%) scale(.45)}
+  .video-library-heading{display:block}
+  .video-library-heading h2{margin-top:18px}
+  .video-library-grid{grid-template-columns:1fr}
 }
 @media(max-width:520px){
   .video-card-section,.video-card-layout{min-height:760px}
@@ -515,6 +539,6 @@ html{scroll-padding-top:calc(4.5dvh + clamp(34px,5.2dvh,66px))}
   .commercial-social-groups--exhibition .commercial-social-group:first-child .commercial-social-card:nth-child(2){grid-column:auto}
 }
 
-.work-heading-side{align-self:stretch;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:26px}.work-heading-side>p{margin:0;font-family:"DM Mono","Microsoft YaHei",monospace;font-size:12px;line-height:1.9;color:#d7d7d2;text-align:right}.work-more-link{display:inline-flex;align-items:center;gap:20px;padding:11px 0 12px;border-bottom:1px solid #fd86db;font:11px "DM Mono","Microsoft YaHei",monospace;letter-spacing:.09em;color:#fff;transition:color .3s ease,gap .3s ease,border-color .3s ease}.work-more-link b{font-size:19px;line-height:0;font-weight:400;color:#fd86db;transition:transform .3s cubic-bezier(.16,1,.3,1)}.work-more-link:hover{gap:30px;color:#fd86db;border-color:#fff}.work-more-link:hover b{transform:translate(4px,-4px)}@media(max-width:800px){.work-heading-side{align-self:auto;gap:0}.work-heading-side>p{display:none}.work-more-link{font-size:9px;gap:12px;padding-bottom:9px}.work-more-link b{font-size:16px}}
+.work-heading-side{align-self:stretch;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:26px}.work-heading-side>p{margin:0;font-family:"DM Mono","Microsoft YaHei",monospace;font-size:12px;line-height:1.9;color:#d7d7d2;text-align:right}.work-more-link{display:inline-flex;align-items:center;gap:16px;padding:10px 11px 10px 20px;border:1px solid #fd86db;border-radius:999px;background:#fd86db;box-shadow:0 10px 30px rgba(253,134,219,.24);font:400 24.75px/1 "优设标题黑","Microsoft YaHei UI","Microsoft YaHei",sans-serif;letter-spacing:.09em;color:#161616;transition:transform .3s cubic-bezier(.16,1,.3,1),background .3s ease,border-color .3s ease,box-shadow .3s ease}.work-more-link b{width:31px;height:31px;display:grid;place-items:center;border-radius:50%;background:#161616;font-size:18px;line-height:1;font-weight:400;color:#fff;transition:transform .3s cubic-bezier(.16,1,.3,1),background .3s ease}.work-more-link:hover{transform:translateY(-3px);background:#fff;border-color:#fff;box-shadow:0 14px 38px rgba(253,134,219,.38)}.work-more-link:hover b{transform:rotate(45deg);background:#fd86db}.work-more-link:focus-visible{outline:2px solid #fff;outline-offset:4px}@media(max-width:800px){.work-heading-side{align-self:auto;gap:0}.work-heading-side>p{display:none}.work-more-link{font-size:13.5px;gap:10px;padding:8px 9px 8px 15px}.work-more-link b{width:27px;height:27px;font-size:15px}}
 
 .toolkit-group--software .tool-card:last-child .tool-card-icon{background:transparent;border:1px dashed rgba(253,134,219,.62)}.toolkit-group--software .tool-card:last-child .tool-card-icon img{display:none}.toolkit-group--software .tool-card:last-child .tool-card-icon:after{content:"+";font:300 28px/1 "DM Mono",monospace;color:#fd86db}.toolkit-group--software .tool-card:last-child>span:last-child{font-family:"DM Mono","Microsoft YaHei",monospace;letter-spacing:.1em;color:#ffd1e5}

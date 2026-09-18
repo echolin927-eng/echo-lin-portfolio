@@ -198,7 +198,7 @@ function OrbitHero() {
     let frame, hovering = false, headRadius = 0, last = null, time = 0
     let points = []
     const resize = () => { const r = flower.getBoundingClientRect(); const width = Math.max(1, Math.round(r.width)); const height = Math.max(1, Math.round(r.height)); canvas.width = width; canvas.height = height; frontCanvas.width = width; frontCanvas.height = height }
-    const addPoint = (event) => {
+    const addPoint = event => {
       const r = flower.getBoundingClientRect(), x = event.clientX - r.left, y = event.clientY - r.top
       if (x < 0 || y < 0 || x > r.width || y > r.height) return
       if (!last || Math.hypot(x - last.x, y - last.y) > 8) { points.push({ x, y, r: headRadius, alpha: 1, seed: Math.random() * 100 }); points = points.slice(-60); last = { x, y } }
@@ -216,7 +216,7 @@ function OrbitHero() {
       const trail = canvas.toDataURL(), frontMask = frontCanvas.toDataURL(); front.style.maskImage = `url(${frontMask})`; front.style.webkitMaskImage = `url(${frontMask})`; reveal.style.maskImage = `url(${trail})`; reveal.style.webkitMaskImage = `url(${trail})`
       points = points.map(p => ({ ...p, alpha: p.alpha * .92, r: p.r * .995 })).filter(p => p.alpha > .01); frame = requestAnimationFrame(draw)
     }
-    const enter = () => { hovering = true }; const leave = () => { hovering = false; last = null }; const move = (e) => { if (hovering && headRadius > 5) addPoint(e) }
+    const enter = () => { hovering = true }; const leave = () => { hovering = false; last = null }; const move = event => { if (hovering && headRadius > 5) addPoint(event) }
     resize(); const observer = new ResizeObserver(resize); observer.observe(flower); stage.addEventListener('mouseenter', enter); stage.addEventListener('mouseleave', leave); stage.addEventListener('mousemove', move); frame = requestAnimationFrame(draw)
     return () => { cancelAnimationFrame(frame); observer.disconnect(); stage.removeEventListener('mouseenter', enter); stage.removeEventListener('mouseleave', leave); stage.removeEventListener('mousemove', move) }
   }, [])
@@ -226,10 +226,8 @@ function OrbitHero() {
     <div className="orbit-flower" ref={flowerRef}><img className="orbit-sizer" src={girlRevealImage} alt="" aria-hidden="true" /><div className="orbit-layer orbit-front" ref={frontRef}><img src={girlRevealImage} alt="网点风格女孩插画" /></div><div className="orbit-layer orbit-reveal" ref={revealRef} aria-hidden="true"><img src={girlImage} alt="" /></div></div>
     <div className="orbit-stickers" aria-hidden="true"><span className="orbit-sticker orbit-sticker--spark">✦</span><span className="orbit-sticker orbit-sticker--arrow">↗</span><span className="orbit-sticker orbit-sticker--stamp">AI<br />CRAFT<br /><i>01</i></span><span className="orbit-sticker orbit-sticker--label">VISUAL<br />SIGNAL · 2026</span></div>
     <p className="orbit-corner orbit-corner-left">Every image, <br />intelligently composed.</p><p className="orbit-corner orbit-corner-right">Less generic design.<br />More memorable output.</p>
-
   </section>
 }
-
 const motionReels = [
   { src: '/assets/motion-reel-01.mp4', poster: '/assets/reel-cover-01.jpg', kicker: '01. TFIT / PRODUCT FILM', name: 'MAKE IT MOVE', detail: '产品 3D 渲染与动态视觉，将性能、光感与情绪凝成一段产品电影。' },
   { src: '/assets/motion-reel-02.mp4', poster: '/assets/reel-cover-02.jpg', kicker: '02. PRODUCT / CONTENT', name: 'STORIES IN FRAME', detail: '用镜头和场景，把产品卖点变成更具沉浸感的内容叙事。' },
@@ -394,17 +392,17 @@ const detailWorkSections = {
 }
 
 const commercialDesignSections = [
-  { number: '01', title: '社媒图片', english: 'SOCIAL MEDIA' },
   { number: '02', title: '海报图片', english: 'POSTER DESIGN' },
+  { number: '01', title: '社媒图片', english: 'SOCIAL MEDIA' },
   { number: '03', title: '包装设计', english: 'PACKAGING DESIGN' },
   { number: '04', title: '展会设计', english: 'EXHIBITION DESIGN' },
 ]
 
 const commercialSocialGroups = [
-  { number: '01', title: 'AE BAR 15K', subtitle: 'CHARACTER FLAVOR SERIES', accent: '#fd86db', images: ['4f604f8b9b330dccebceb88bb739b997.PNG', '5c84aced1c66ab9d185be1185287ba45.PNG', '6b4e87f2dfb3a312247bcc55f7eda280.PNG', '60c344a7502f09942e3a9bd17780fd1f.PNG', '4069df8d91216823bb094b7258b88b3b.PNG', '751106d6af88fa8ccba5da48cd73bb3b.PNG', 'b074faf3b1b4fd1e3897b3d450049adf.PNG', 'b596bdb895af94f8cc144c6b06ff9779.PNG', 'f2da4ff6cbd48a16878e6c4684386c4d.PNG'] },
-  { number: '02', title: 'INFY 15,000', subtitle: 'NEW FLAVORS SERIES', accent: '#72f13f', images: ['148a9f1d1f973f022ddf691f2c4d67ed.PNG', 'c7ad68d474c2898abec1bbe0dcafd15f.PNG', '74f5868e451e4688370d276827fff8a5.PNG', '54a393e40f6ef39fb8afb6c4b3cd5fc7.PNG', 'e34133adc58b9186fb72482558bf4313.PNG'] },
-  { number: '03', title: 'DOLPHIN BAR', subtitle: 'ANIMAL ILLUSTRATION SERIES', accent: '#f7a52d', images: ['857a486f0a6444e00c966d66b5f3bf53.JPG', '1f581427ced7c5c89b0fccafecaa7325.JPG', '8f391a9400dd6ec381759968196620a8.JPG', '4560180ae99a5d8e4ab0b41e0dae3869.JPG', 'c0fddc2afa86ab0a9a83918e3146bf6c.JPG', 'f99dea1a7f0e8cb02e1e5f3e6c58b90e.JPG', 'f4604a7d75227af40f5f8060c8e63283.JPG'] },
-  { number: '04', title: 'TFIT NOVA MAX', subtitle: 'TECH IN NIGHT', accent: '#37f78b', images: ['8d0b045cf0923ed6f89e45351df1d6aa.PNG', '8e2be307387a6d83b5f02d02bf231ec3.PNG', '560f532ce47d8382df2312b936bc7ba8.PNG', 'b9c2e77a27adb1777f46bd5c51483ef4.PNG', 'f880945c797c49a18ae3409710e360eb.PNG'] },
+  { number: '01', title: 'TFIT NOVA MAX', subtitle: 'TECH IN NIGHT', accent: '#37f78b', images: ['8d0b045cf0923ed6f89e45351df1d6aa.PNG', '8e2be307387a6d83b5f02d02bf231ec3.PNG', '560f532ce47d8382df2312b936bc7ba8.PNG', 'b9c2e77a27adb1777f46bd5c51483ef4.PNG', 'f880945c797c49a18ae3409710e360eb.PNG'] },
+  { number: '02', title: 'AE BAR 15K', subtitle: 'CHARACTER FLAVOR SERIES', accent: '#fd86db', images: ['4f604f8b9b330dccebceb88bb739b997.PNG', '5c84aced1c66ab9d185be1185287ba45.PNG', '6b4e87f2dfb3a312247bcc55f7eda280.PNG', '60c344a7502f09942e3a9bd17780fd1f.PNG', '4069df8d91216823bb094b7258b88b3b.PNG', '751106d6af88fa8ccba5da48cd73bb3b.PNG', 'b074faf3b1b4fd1e3897b3d450049adf.PNG', 'b596bdb895af94f8cc144c6b06ff9779.PNG', 'f2da4ff6cbd48a16878e6c4684386c4d.PNG'] },
+  { number: '03', title: 'INFY 15,000', subtitle: 'NEW FLAVORS SERIES', accent: '#72f13f', images: ['148a9f1d1f973f022ddf691f2c4d67ed.PNG', 'c7ad68d474c2898abec1bbe0dcafd15f.PNG', '74f5868e451e4688370d276827fff8a5.PNG', '54a393e40f6ef39fb8afb6c4b3cd5fc7.PNG', 'e34133adc58b9186fb72482558bf4313.PNG'] },
+  { number: '04', title: 'DOLPHIN BAR', subtitle: 'ANIMAL ILLUSTRATION SERIES', accent: '#f7a52d', images: ['857a486f0a6444e00c966d66b5f3bf53.JPG', '1f581427ced7c5c89b0fccafecaa7325.JPG', '8f391a9400dd6ec381759968196620a8.JPG', '4560180ae99a5d8e4ab0b41e0dae3869.JPG', 'c0fddc2afa86ab0a9a83918e3146bf6c.JPG', 'f99dea1a7f0e8cb02e1e5f3e6c58b90e.JPG', 'f4604a7d75227af40f5f8060c8e63283.JPG'] },
   { number: '05', title: 'AE BAR 30W', subtitle: 'PRODUCT & FLAVOR CAMPAIGN', accent: '#6ebcff', images: ['660aecd52370d11d2f99d4595258e0ef.PNG', '5cf4ed8fe8d9f5d34c1a1fc83bac8968.JPG', '6db031c8dcc0d9ebd5576899ac6bbc6e.PNG', 'ce01b244c8db2a07f3f97fe085bfa368.JPG', '04bb2138f935aff84f082c5f4bb45900.PNG', 'be39ba98521d26449f3c8e4fc461503d.PNG', 'd2b6ea0d79f98e24b8bd153904313104.PNG', 'e3adcae48f7748039dd86ccbcb7fc080.PNG', 'f6777a4fb4851e9e5244e6ac1a9294ba.PNG'] },
   { number: '06', title: 'TEX BAR', subtitle: 'COLORFUL LIFESTYLE SERIES', accent: '#ff70ad', images: ['3c39c326f64332a824be3aeffcf06072.PNG', '9e6f2b6f09df9b91c078172c7ba8cce2.JPG', 'af658b7c35f7ed1c47e0d0dba3413075.PNG'] },
   { number: '07', title: 'ICE + NIC', subtitle: 'ADJUSTABLE DISPOSABLE', accent: '#20c8ff', images: ['1866810036ed38bc134bfccdf779ef38.JPG', 'd82dec0ded229457f8d5b9100b84ff04.JPG', '41a2b9da885735cfe87bd406b334c55c.PNG'] },

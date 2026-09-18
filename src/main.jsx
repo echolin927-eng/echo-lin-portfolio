@@ -83,6 +83,62 @@ function Toolkit() {
 
 const girlImage = '/assets/echo-girl.png'
 const girlRevealImage = '/assets/echo-girl-reveal.png'
+function GlowCursor() {
+  const layerRef = useRef(null)
+
+  useEffect(() => {
+    const finePointer = window.matchMedia('(pointer: fine)')
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (!finePointer.matches || reducedMotion.matches) return undefined
+
+    const layer = layerRef.current
+    const particles = Array.from(layer.querySelectorAll('.glow-cursor-particle'))
+    const positions = particles.map(() => ({ x: 0, y: 0 }))
+    let targetX = 0
+    let targetY = 0
+    let hasPosition = false
+    let frame = 0
+
+    const move = (event) => {
+      targetX = event.clientX
+      targetY = event.clientY
+      if (!hasPosition) {
+        positions.forEach((position) => { position.x = targetX; position.y = targetY })
+        hasPosition = true
+      }
+      layer.classList.add('is-visible')
+    }
+    const hide = (event) => {
+      if (!event.relatedTarget) layer.classList.remove('is-visible')
+    }
+    const render = () => {
+      if (hasPosition) {
+        positions[0].x = targetX
+        positions[0].y = targetY
+        particles.forEach((particle, index) => {
+          particle.style.transform = `translate3d(${positions[index].x - 21}px,${positions[index].y - 21}px,0)`
+        })
+      }
+      frame = requestAnimationFrame(render)
+    }
+
+    document.documentElement.classList.add('has-glow-cursor')
+    window.addEventListener('pointermove', move, { passive: true })
+    window.addEventListener('mouseout', hide)
+    frame = requestAnimationFrame(render)
+
+    return () => {
+      document.documentElement.classList.remove('has-glow-cursor')
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('mouseout', hide)
+      cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  return <div className="glow-cursor-layer" ref={layerRef} aria-hidden="true">
+    <img className="glow-cursor-particle glow-cursor-main" src="/assets/neon-cursor.png" alt="" />
+  </div>
+}
 
 function FloatingHeader({ active = 'home', backHref }) {
   return <>
@@ -560,7 +616,7 @@ function usePortfolioMotion() {
         { selector: '.work', cards: ['.ag-panel'], images: ['.ag-media img'] },
         { selector: '.strength', cards: ['.strength-grid article'], images: [] },
         { selector: '.scroll-stack', cards: ['.scroll-stack__heading', '.scroll-stack__dots'], images: [] },
-        { selector: '.contact', cards: ['.contact-cta', '.contact-tags span', '.footer-bottom'], images: [] },
+        { selector: '.contact', cards: ['.contact-cta', '.footer-bottom'], images: [] },
       ]
 
       sectionConfigs.forEach(({ selector, cards, images }) => {
@@ -582,6 +638,31 @@ function usePortfolioMotion() {
           gsap.fromTo(image, { scale: 1.18, yPercent: 9 }, { scale: 1, yPercent: -4, ease: 'none', scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 1.35 } })
         })
       })
+
+      const contactTags = gsap.utils.toArray('.contact-tags span')
+      if (contactTags.length) {
+        const dropX = [-90, 45, -35, 110, -70, 60, -120, 85]
+        const restRotation = [-12, -2, -12, 14, 15, 1, -1, 1]
+        const rotationDrift = [18, -12, 24, -20, 16, -18, 22, -14]
+        gsap.fromTo(contactTags, {
+          autoAlpha: 0,
+          x: (index) => dropX[index],
+          y: (index) => -Math.min(window.innerHeight, 900) * (.72 + ((index * 2) % 5) * .08),
+          rotation: (index) => restRotation[index] + rotationDrift[index],
+          scale: (index) => .88 + (index % 3) * .04,
+        }, {
+          autoAlpha: 1,
+          x: 0,
+          y: 0,
+          rotation: (index) => restRotation[index],
+          scale: 1,
+          duration: (index) => 2.15 + (index % 4) * .18,
+          stagger: { each: .16, from: 'random' },
+          ease: 'back.out(1.04)',
+          scrollTrigger: { trigger: '.contact-tags', start: 'top 88%', once: true },
+          onComplete: () => gsap.set(contactTags, { clearProps: 'transform' }),
+        })
+      }
     })
 
     return () => context.revert()
@@ -652,9 +733,33 @@ function App() {
           <span>Product Design</span><span>Social Media</span><span>3D Motion</span><span>Brand Visual</span>
           <span>Art Direction</span><span>Websites</span><span>AI Creative</span><span>Video Editing</span>
         </div>
-        <div className="footer-bottom">
-          <div><a href="mailto:echolin927@gmail.com">echolin927@gmail.com</a><a href="tel:15975246069">+86 159 7524 6069</a></div>
-          <p>© 2026 ECHO LIN<br/>VISUAL PORTFOLIO</p>
+        <div className="footer-bottom contact-info-panel">
+          <span className="contact-info-word" aria-hidden="true" onPointerMove={(event) => {
+            const bounds = event.currentTarget.getBoundingClientRect()
+            const scaleY = bounds.height / event.currentTarget.offsetHeight
+            event.currentTarget.style.setProperty('--spot-x', `${event.clientX - bounds.left}px`)
+            event.currentTarget.style.setProperty('--spot-y', `${(event.clientY - bounds.top) / scaleY}px`)
+          }}>LET'S DESIGN</span>
+          <section className="contact-info-lead">
+            <h3>Let’s create<br/>something great.</h3>
+            <p>有新的项目或合作想法？欢迎随时联系我。</p>
+            <a className="contact-email-box" href="mailto:echolin927@gmail.com"><span>echolin927@gmail.com</span><b>↗</b></a>
+          </section>
+          <div className="contact-info-columns">
+            <section>
+              <h4>个人信息</h4>
+              <dl><div><dt>身份</dt><dd>视觉设计师</dd></div><div><dt>方向</dt><dd>品牌 / 3D / 动态视觉</dd></div><div><dt>状态</dt><dd>开放合作中</dd></div></dl>
+            </section>
+            <section>
+              <h4>作品导航</h4>
+              <dl><div><dt>Design</dt><dd><a href="/design">平面设计 ↗</a></dd></div><div><dt>Video</dt><dd><a href="/video">视频作品 ↗</a></dd></div><div><dt>About</dt><dd><a href="/#about">个人简介 ↗</a></dd></div></dl>
+            </section>
+            <section>
+              <h4>联系我</h4>
+              <dl><div><dt>邮箱</dt><dd><a href="mailto:echolin927@gmail.com">echolin927@gmail.com</a></dd></div><div><dt>电话</dt><dd><a href="tel:15975246069">+86 159 7524 6069</a></dd></div><div><dt>合作咨询</dt><dd>欢迎通过邮箱或电话联系</dd></div></dl>
+            </section>
+          </div>
+          <p className="contact-copyright">© 2026 ECHO LIN / VISUAL PORTFOLIO</p>
         </div>
       </div>
     </footer>
@@ -677,4 +782,4 @@ const content = currentCategory
     ? <SecondaryPage type="video" />
     : <App />
 
-createRoot(document.getElementById('root')).render(<StrictMode>{content}</StrictMode>)
+createRoot(document.getElementById('root')).render(<StrictMode><GlowCursor />{content}</StrictMode>)

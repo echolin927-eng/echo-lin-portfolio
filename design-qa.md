@@ -78,6 +78,46 @@ final result: passed
 
 ---
 
+# Design QA — Neon Cursor and Glow Trail
+
+- Source visual truth: `C:\Users\ZHUANZ~1\AppData\Local\Temp\codex-clipboard-e8157e8c-33c1-499f-9184-1d53f755431b.png`
+- Source dimensions: 400 × 400 px, transparent PNG
+- Implementation route: `http://127.0.0.1:5173/design`
+- Implementation asset: `D:\作品集\个人作品集网站\public\assets\neon-cursor.png`
+- Intended viewport: 840 × 792 CSS px, desktop fine-pointer state
+- Implementation screenshot: unavailable because the in-app browser control process was terminated twice by the Windows sandbox
+
+## Full-view comparison evidence
+
+Blocked. The source asset was opened and inspected, but a browser-rendered implementation screenshot could not be captured. Production build passed.
+
+## Focused region comparison evidence
+
+Blocked for the same browser-control failure. The implementation uses the supplied transparent PNG directly at 76 × 76 CSS px, with one primary cursor and eight progressively delayed, faded trail particles.
+
+## Required fidelity surfaces
+
+- Fonts and typography: not applicable to the cursor asset.
+- Spacing and layout rhythm: cursor layer is fixed and pointer-events are disabled; browser capture is still required to confirm perceived scale.
+- Colors and visual tokens: supplied pink-purple source asset is reused directly; added glow uses matching magenta/violet shadows.
+- Image quality and asset fidelity: original transparent PNG is used without reconstruction.
+- Copy and content: not applicable.
+
+## Findings
+
+- [P2] Browser-rendered cursor scale and trail feel remain unverified.
+  Evidence: browser automation exited before a screenshot or pointer-motion test could be captured.
+  Impact: build correctness is confirmed, but visual size, hotspot alignment, and motion smoothness have not been observed in the rendered page.
+  Fix: reopen the local preview and inspect pointer movement at the intended desktop viewport.
+
+## Comparison history
+
+- Initial pass: blocked before capture; no visual fixes claimed.
+
+final result: blocked
+
+---
+
 # Design QA — Stacked Paper Introduction Card
 
 - Source asset: `C:\Users\ZhuanZ（无密码）\Desktop\231e61576ebc7908c54f90b2018144a9.png`

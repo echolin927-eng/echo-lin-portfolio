@@ -764,7 +764,7 @@ function App() {
   </main>
 }
 
-const page = window.location.pathname.split('/').pop().replace(/\.html$/, '')
+const page = (window.location.pathname.split('/').filter(Boolean).pop() ?? '').replace(/\.html$/, '')
 const currentCategory = designCategories.find((category) => category.slug === page)
 const requestedWork = Number.parseInt(new URLSearchParams(window.location.search).get('work'), 10)
 const currentWorkIndex = Number.isInteger(requestedWork) ? requestedWork - 1 : -1

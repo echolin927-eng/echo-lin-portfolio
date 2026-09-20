@@ -487,7 +487,7 @@ function DesignCategoryPage({ category }) {
         ? <a className="category-preview-link" href={`/${category.slug}?work=${index + 1}`} aria-label={`查看${category.title}作品 ${index + 1}`} key={image}><figure><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{category.english}</span></figcaption></figure></a>
         : <figure key={image}><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{category.english}</span></figcaption></figure>)}
     </div></section>}
-    <footer className="secondary-footer"><div className="shell"><a href="/design">← 返回平面作品</a><a href="/#contact">联系我 ↗</a></div></footer>
+    <footer className="secondary-footer"><div className="shell"><a href="/design">← 返回平面作品</a><a className="site-filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">粤ICP备2026141529号-1</a><a href="/#contact">联系我 ↗</a></div></footer>
   </main>
 }
 
@@ -567,7 +567,7 @@ function DesignWorkDetailPage({ category, sections, index }) {
               : <div className={`work-detail-gallery work-detail-gallery--${section.layout ?? 'single'}`}>{section.images.map((image, imageIndex) => <img src={image} alt={`${category.title}作品 ${index + 1} ${section.label} ${imageIndex + 1}`} loading={imageIndex > 1 ? 'lazy' : undefined} decoding="async" key={image} />)}</div>}
       </div>)}
     </div></section>
-    <footer className="secondary-footer"><div className="shell"><a href={`/${category.slug}`}>← 返回{category.title}</a><a href="/#contact">联系我 ↗</a></div></footer>
+    <footer className="secondary-footer"><div className="shell"><a href={`/${category.slug}`}>← 返回{category.title}</a><a className="site-filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">粤ICP备2026141529号-1</a><a href="/#contact">联系我 ↗</a></div></footer>
   </main>
 }
 
@@ -585,7 +585,7 @@ function SecondaryPage({ type }) {
     {isDesign ? <section className="secondary-content"><div className="shell">
       <DesignCategoryLinks />
     </div></section> : <VideoCardShowcase />}
-    <footer className="secondary-footer"><div className="shell"><a href="/">← 返回首页</a><a href="/#contact">联系我 ↗</a></div></footer>
+    <footer className="secondary-footer"><div className="shell"><a href="/">← 返回首页</a><a className="site-filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">粤ICP备2026141529号-1</a><a href="/#contact">联系我 ↗</a></div></footer>
   </main>
 }
 
@@ -720,14 +720,14 @@ function App() {
     <footer className="contact" id="contact">
       <div className="shell contact-inner">
         <div className="contact-heading">
-          <p className="contact-kicker">OPEN FOR COLLABORATION / 2026</p>
-          <h2><strong>ALL <span>YOUR</span></strong><br/><i>design needs</i></h2>
+          <p className="contact-kicker">PORTFOLIO ARCHIVE / 2026</p>
+          <h2><strong>SELECTED <span>VISUAL</span></strong><br/><i>design works</i></h2>
         </div>
         <div className="contact-cta">
-          <p>从一个想法到完整落地，<br/>一起做有辨识度、也真正有效的设计。</p>
-          <a href="mailto:echolin927@gmail.com">LET'S TALK <b>↗</b></a>
+          <p>记录品牌、三维与动态视觉，<br/>呈现从概念到成品的设计过程。</p>
+          <a href="mailto:echolin927@gmail.com">EMAIL <b>↗</b></a>
         </div>
-        <div className="contact-tags" aria-label="可合作的设计方向">
+        <div className="contact-tags" aria-label="设计方向">
           <span>Product Design</span><span>Social Media</span><span>3D Motion</span><span>Brand Visual</span>
           <span>Art Direction</span><span>Websites</span><span>AI Creative</span><span>Video Editing</span>
         </div>
@@ -737,16 +737,16 @@ function App() {
             const scaleY = bounds.height / event.currentTarget.offsetHeight
             event.currentTarget.style.setProperty('--spot-x', `${event.clientX - bounds.left}px`)
             event.currentTarget.style.setProperty('--spot-y', `${(event.clientY - bounds.top) / scaleY}px`)
-          }}>LET'S DESIGN</span>
+          }}>PORTFOLIO</span>
           <section className="contact-info-lead">
-            <h3>Let’s create<br/>something great.</h3>
-            <p>有新的项目或合作想法？欢迎随时联系我。</p>
+            <h3>Selected works<br/>and visual notes.</h3>
+            <p>个人作品与视觉实验持续更新。</p>
             <a className="contact-email-box" href="mailto:echolin927@gmail.com"><span>echolin927@gmail.com</span><b>↗</b></a>
           </section>
           <div className="contact-info-columns">
             <section>
               <h4>个人信息</h4>
-              <dl><div><dt>身份</dt><dd>视觉设计师</dd></div><div><dt>方向</dt><dd>品牌 / 3D / 动态视觉</dd></div><div><dt>状态</dt><dd>开放合作中</dd></div></dl>
+              <dl><div><dt>身份</dt><dd>视觉设计师</dd></div><div><dt>方向</dt><dd>品牌 / 3D / 动态视觉</dd></div><div><dt>状态</dt><dd>作品持续更新</dd></div></dl>
             </section>
             <section>
               <h4>作品导航</h4>
@@ -754,10 +754,10 @@ function App() {
             </section>
             <section>
               <h4>联系我</h4>
-              <dl><div><dt>邮箱</dt><dd><a href="mailto:echolin927@gmail.com">echolin927@gmail.com</a></dd></div><div><dt>电话</dt><dd><a href="tel:15975246069">+86 159 7524 6069</a></dd></div><div><dt>合作咨询</dt><dd>欢迎通过邮箱或电话联系</dd></div></dl>
+              <dl><div><dt>邮箱</dt><dd><a href="mailto:echolin927@gmail.com">echolin927@gmail.com</a></dd></div><div><dt>电话</dt><dd><a href="tel:15975246069">+86 159 7524 6069</a></dd></div><div><dt>网站内容</dt><dd>个人作品展示</dd></div></dl>
             </section>
           </div>
-          <p className="contact-copyright">© 2026 ECHO LIN / VISUAL PORTFOLIO</p>
+          <p className="contact-copyright"><span>© 2026 ECHO LIN / VISUAL PORTFOLIO</span><a className="site-filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">粤ICP备2026141529号-1</a></p>
         </div>
       </div>
     </footer>

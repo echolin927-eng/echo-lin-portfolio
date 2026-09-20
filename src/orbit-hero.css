@@ -237,8 +237,9 @@ html{scroll-padding-top:calc(4.5dvh + clamp(34px,5.2dvh,66px))}
 .secondary-hero .shell>p:last-child{margin:38px 0 0;font:13px/1.8 "DM Mono","Microsoft YaHei",monospace;color:#cfc4ca}
 .secondary-content{padding:clamp(70px,10vw,150px) 0;background:radial-gradient(circle at 50% 40%,rgba(80,49,66,.24),transparent 48%),#161616}
 .secondary-footer{padding:34px 0;border-top:1px solid rgba(255,255,255,.16);background:#161616}
-.secondary-footer .shell{display:flex;justify-content:space-between;font:14px "DM Mono","Microsoft YaHei",monospace;letter-spacing:.06em}
+.secondary-footer .shell{display:flex;align-items:center;justify-content:space-between;gap:24px;font:14px "DM Mono","Microsoft YaHei",monospace;letter-spacing:.06em}
 .secondary-footer a{border-bottom:1px solid #fd86db;padding-bottom:7px;font-weight:700}
+.secondary-footer .site-filing{border-bottom-color:rgba(255,255,255,.28);color:rgba(255,255,255,.68);font-size:11px;font-weight:400}
 
 @media(max-width:1100px) and (min-width:901px){.orbit-nav{left:9vw}.orbit-pill{right:3vw;padding:0 14px}}
 @media(max-width:900px),(max-aspect-ratio:4/5){
@@ -476,7 +477,10 @@ html{scroll-padding-top:calc(4.5dvh + clamp(34px,5.2dvh,66px))}
 .contact-info-columns section:nth-child(1) dd,.contact-info-columns section:nth-child(2) dd,.contact-info-columns section:nth-child(2) a,.contact-info-columns section:nth-child(3) dd,.contact-info-columns section:nth-child(3) a{font-size:16.5px}
 .contact-info-columns a{transition:color .2s ease}
 .contact-info-columns a:hover{color:#fd86db!important}
-.contact-copyright{position:absolute;z-index:2;right:56px;bottom:18px;margin:0!important;color:#5f5963!important;font:8px "DM Mono",monospace!important;letter-spacing:.08em}
+.contact-copyright{position:absolute;z-index:2;right:56px;bottom:18px;margin:0!important;display:flex;align-items:center;gap:14px;color:#5f5963!important;font:8px "DM Mono",monospace!important;letter-spacing:.08em}
+.contact-copyright .site-filing{color:#77707a;border-bottom:1px solid #5f5963;padding-bottom:2px;transition:color .2s ease}
+.contact-copyright .site-filing:hover{color:#fd86db}
+@media(max-width:640px){.secondary-footer .shell{flex-wrap:wrap;justify-content:center}.secondary-footer .shell>a:first-child{margin-right:auto}.secondary-footer .shell>a:last-child{margin-left:auto}.secondary-footer .site-filing{order:3;width:100%;text-align:center}}
 
 @media(max-width:900px){
   .contact{height:auto;min-height:1420px}.contact-inner{min-height:1420px;padding-top:72px;grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto;gap:0}

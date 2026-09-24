@@ -1,8 +1,8 @@
 import { StrictMode, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
+import { createPortal } from 'react-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import AccordionGallery from './AccordionGallery'
 import ScrollStack from './ScrollStack'
 import GlareHover from './GlareHover'
 import CardSwap, { Card } from './CardSwap'
@@ -16,11 +16,40 @@ const projects = [
 ]
 
 const strengths = [
-  ['01', '品牌视觉', '从策略、VI 到包装与电商物料，让品牌语言在每个触点保持一致。'],
-  ['02', '3D 与动态', '熟悉 C4D、KeyShot 与后期流程，以镜头感建立产品的情绪与记忆点。'],
-  ['03', 'AI 创意', '将生成式工具融入创意开发和视觉制作，提高探索密度与落地效率。'],
-  ['04', '跨团队协作', '具备团队管理与项目统筹经验，能在业务、产品与设计之间高效协同。'],
+  { number: '01', keywords: ['审美好', '重细节', '落地稳'], points: ['VI 设计、品牌视觉搭建', '网页设计、品牌物料输出'] },
+  { number: '02', keywords: ['深耕设计行业 9 年', '实战足', '出图快'], points: ['3D 建模、产品渲染', '视频渲染制作'] },
+  { number: '03', keywords: ['创意强', '善探索', '学习快'], points: ['AI 绘图创作', '搭建 AIGC 创意工作流'] },
+  { number: '04', keywords: ['善沟通', '懂统筹', '能协同'], points: ['跨团队对接协作', '全项目落地把控'] },
 ]
+
+const handleStrengthCardMove = (event) => {
+  if (event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const card = event.currentTarget
+  const bounds = card.getBoundingClientRect()
+  const horizontal = ((event.clientX - bounds.left) / bounds.width - .5) * 2
+  const vertical = ((event.clientY - bounds.top) / bounds.height - .5) * 2
+  gsap.to(card, {
+    rotateX: vertical * -7,
+    rotateY: horizontal * 8,
+    y: -8,
+    transformPerspective: 900,
+    transformOrigin: 'center center',
+    duration: .22,
+    ease: 'power2.out',
+    overwrite: 'auto',
+  })
+}
+
+const handleStrengthCardLeave = (event) => {
+  gsap.to(event.currentTarget, {
+    rotateX: 0,
+    rotateY: 0,
+    y: 0,
+    duration: .55,
+    ease: 'elastic.out(1, .55)',
+    overwrite: 'auto',
+  })
+}
 
 const galleryProjects = [
   { image: '/assets/work-showcase-01-new.png', label: 'TFIT NOVA MAX', type: '3D MOTION / PRODUCT', subtitle: '产品 3D 渲染与动态视觉', href: '/design' },
@@ -30,6 +59,133 @@ const galleryProjects = [
   { image: '/assets/work-showcase-05.jpg', label: 'DIGITAL EXPERIENCE', type: 'WEB / INTERFACE', subtitle: '数字界面的视觉体验', href: '/commercial-design' },
 ]
 
+const portfolioVideos = [
+  { src: '/assets/motion-reel-01.mp4', poster: '/assets/motion-reel-01-poster.jpg', label: 'MOTION REEL 01', type: '3D MOTION / PRODUCT', subtitle: '产品动态视觉与镜头表达' },
+  { src: '/assets/motion-reel-02.mp4', poster: '/assets/motion-reel-02-poster.jpg', label: 'MOTION REEL 02', type: 'MOTION / CAMPAIGN', subtitle: '品牌动画与创意短片' },
+  { src: '/assets/motion-reel-03.mp4', poster: '/assets/motion-reel-03-poster.jpg', label: 'MOTION REEL 03', type: '3D / VISUAL STORY', subtitle: '三维场景与产品叙事' },
+  { src: '/assets/amazon-ai-prompts.mp4', poster: '/assets/amazon-ai-prompts-cover.png', label: 'AI CREATIVE REEL', type: 'AIGC / E-COMMERCE', subtitle: 'AI 创意与商业视觉实验' },
+]
+
+const portfolioImageRows = [
+  ['/assets/detail-work-08-main-01.png', '/assets/detail-work-08-main-02.jpg', '/assets/detail-work-08-main-03.jpg', '/assets/detail-work-08-main-04.jpg'],
+  ['/assets/detail-work-01-main-01.jpg', '/assets/detail-work-01-main-02.jpg', '/assets/detail-work-01-main-03.jpg', '/assets/detail-work-01-main-04.jpg'],
+]
+
+const journeyProjects = [
+  { image: '/assets/work-showcase-01-new.png', label: 'TFIT NOVA MAX', href: '/design' },
+  { image: '/assets/work-showcase-02-new.png', label: 'PRODUCT STORIES', href: '/detail-page-design?work=8' },
+  { image: '/assets/work-showcase-01.jpg', label: 'AMAZON A+ PAGE', href: '/detail-page-design?work=1' },
+  { image: '/assets/work-showcase-04.jpg', label: 'BRAND IDENTITY', href: '/amazon-store-design' },
+  { image: '/assets/work-showcase-05.jpg', label: 'DIGITAL EXPERIENCE', href: '/commercial-design' },
+  { image: '/assets/design-cover-amazon-store.jpg', label: 'AMAZON STORE', href: '/amazon-store-design' },
+  { image: '/assets/design-cover-commercial.jpg', label: 'COMMERCIAL DESIGN', href: '/commercial-design' },
+  { image: '/assets/design-cover-detail-page.jpg', label: 'DETAIL PAGE', href: '/detail-page-design' },
+  { image: '/assets/design-cover-website.jpg', label: 'WEBSITE DESIGN', href: '/website-design' },
+]
+
+function PortfolioMosaic({ items }) {
+  const [videoIndex, setVideoIndex] = useState(0)
+  const [viewer, setViewer] = useState(null)
+  const videoCardRef = useRef(null)
+  const activeVideo = portfolioVideos[videoIndex]
+
+  useEffect(() => {
+    if (!viewer) return undefined
+    const previousOverflow = document.body.style.overflow
+    const closeOnEscape = (event) => { if (event.key === 'Escape') setViewer(null) }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [viewer])
+
+  useEffect(() => {
+    const card = videoCardRef.current
+    if (!card) return undefined
+
+    let accumulatedDelta = 0
+    let locked = false
+    let unlockTimer = 0
+    let resetTimer = 0
+    const handleVideoWheel = (event) => {
+      if (event.ctrlKey || Math.abs(event.deltaY) < 2) return
+      event.preventDefault()
+      event.stopPropagation()
+      if (locked) return
+
+      accumulatedDelta += event.deltaY
+      window.clearTimeout(resetTimer)
+      resetTimer = window.setTimeout(() => { accumulatedDelta = 0 }, 160)
+      if (Math.abs(accumulatedDelta) < 18) return
+
+      const direction = accumulatedDelta > 0 ? 1 : -1
+      accumulatedDelta = 0
+      locked = true
+      setVideoIndex(current => (current + direction + portfolioVideos.length) % portfolioVideos.length)
+      window.clearTimeout(unlockTimer)
+      unlockTimer = window.setTimeout(() => { locked = false }, 650)
+    }
+
+    card.addEventListener('wheel', handleVideoWheel, { passive: false })
+    return () => {
+      window.clearTimeout(unlockTimer)
+      window.clearTimeout(resetTimer)
+      card.removeEventListener('wheel', handleVideoWheel)
+    }
+  }, [])
+
+  const openVideo = () => setViewer({ ...activeVideo, type: 'video' })
+  const activateFeature = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      openVideo()
+    }
+  }
+
+  return <>
+    <div className="portfolio-mosaic" role="list" aria-label="精选作品">
+      <article className="portfolio-mosaic-card portfolio-mosaic-card--feature portfolio-video-card" ref={videoCardRef} role="listitem" aria-label={`播放 ${activeVideo.label}，滚轮切换视频`} tabIndex={0} onClick={openVideo} onKeyDown={activateFeature}>
+        <video key={activeVideo.src} src={activeVideo.src} poster={activeVideo.poster} autoPlay muted loop playsInline preload="metadata" />
+
+        <span className="portfolio-mosaic-number">{String(videoIndex + 1).padStart(2, '0')}</span>
+        <span className="portfolio-mosaic-copy">
+          <small>{activeVideo.type}</small>
+          <strong>{activeVideo.label}</strong>
+          <em>{activeVideo.subtitle}</em>
+        </span>
+        <span className="portfolio-video-dots" aria-label={`第 ${videoIndex + 1} 个视频，共 ${portfolioVideos.length} 个`} onClick={event => event.stopPropagation()}>
+          {portfolioVideos.map((video, index) => <button type="button" key={video.src} className={index === videoIndex ? 'is-active' : ''} aria-label={`切换到视频 ${index + 1}`} aria-current={index === videoIndex} onClick={() => setVideoIndex(index)} />)}
+        </span>
+        <span className="portfolio-mosaic-arrow" aria-hidden="true">↗</span>
+      </article>
+
+      {portfolioImageRows.map((images, rowIndex) => {
+        const item = items[rowIndex + 1]
+        return <article className="portfolio-mosaic-card portfolio-image-card" role="listitem" aria-label={`${item.label} 作品主图`} key={item.label}>
+          <div className="portfolio-image-strip">
+            {images.map((src, imageIndex) => <button type="button" key={src} aria-label={`放大查看 ${item.label} 主图 ${imageIndex + 1}`} onClick={() => setViewer({ type: 'image', src, label: `${item.label} / 0${imageIndex + 1}` })}>
+              <img src={src} alt={`${item.label} 作品主图 ${imageIndex + 1}`} />
+            </button>)}
+          </div>
+
+          <span className="portfolio-mosaic-number">0{rowIndex + 2}</span>
+        </article>
+      })}
+    </div>
+
+    {viewer && createPortal(<div className="portfolio-lightbox" role="dialog" aria-modal="true" aria-label={`查看 ${viewer.label}`} onClick={() => setViewer(null)}>
+      <button className="portfolio-lightbox-close" type="button" onClick={() => setViewer(null)}>关闭</button>
+      <div className={`portfolio-lightbox-media is-${viewer.type}`} onClick={event => event.stopPropagation()}>
+        {viewer.type === 'video'
+          ? <video src={viewer.src} poster={viewer.poster} controls autoPlay playsInline />
+          : <img src={viewer.src} alt={viewer.label} />}
+        <p>{viewer.label}</p>
+      </div>
+    </div>, document.body)}
+  </>
+}
 const experience = [
   { period: '2025.10 — 2026.04', company: '深圳市微铸科技有限公司', role: '高级设计师', detail: '负责新品主图与 A+ 视觉、游戏类头戴耳机旗舰店设计，以及旧品图片优化与设计资产归档。' },
   { period: '2024.03 — 2025.08', company: '深圳市森克维普', role: '动画 / 平面设计师', detail: '承担新品动画、电子烟展会物料、海外社交媒体内容，以及品牌 VI 与产品包装设计。' },
@@ -163,6 +319,27 @@ function FloatingHeader({ active = 'home', backHref }) {
     </header>
     {backHref && <a className="floating-back" href={backHref} aria-label="返回上一层页面"><span aria-hidden="true">←</span><b>返回</b></a>}
   </>
+}
+function PortfolioNav({ activeTab = '', backHref }) {
+  const jumpToSection = (event, selector) => {
+    const target = document.querySelector(selector)
+    if (!target) return
+    event.preventDefault()
+    const targetTop = window.scrollY + target.getBoundingClientRect().top
+    window.history.replaceState(null, '', selector)
+    window.scrollTo({ top: targetTop, behavior: 'instant' })
+  }
+  return createPortal(<>
+    <nav className="journey-tabs" aria-label="网站导航">
+      <a className={activeTab === 'home' ? 'is-active' : ''} href="/">首页</a>
+      <a className={activeTab === 'about' ? 'is-active' : ''} href="/#about">关于我</a>
+      <a className={activeTab === 'experience' ? 'is-active' : ''} href="/#journey-experience">工作经历</a>
+      <a className={activeTab === 'work' ? 'is-active' : ''} href="#work" onClick={event => jumpToSection(event, '#work')}>个人作品</a>
+      <a className={activeTab === 'strength' ? 'is-active' : ''} href="#strength" onClick={event => jumpToSection(event, '#strength')}>个人优势</a>
+      <a className={activeTab === 'contact' ? 'is-active' : ''} href="#contact" onClick={event => jumpToSection(event, '#contact')}>联系我</a>
+    </nav>
+    {backHref && <a className="floating-back" href={backHref} aria-label="返回上一层页面"><span aria-hidden="true">←</span><b>返回</b></a>}
+  </>, document.body)
 }
 
 const marqueeWords = ['VISUAL DESIGN', 'ART DIRECTION', 'BRAND IDENTITY', '3D MOTION', 'AI CREATIVE']
@@ -306,12 +483,17 @@ function VideoCardShowcase() {
   </>
 }
 
+const viProjects = [
+  { slug: 'sillroot', number: '01', title: 'SILLROOT', english: 'NATURAL WOODY FRAGRANCE', description: '天然木质香氛品牌视觉识别与包装应用。', image: '/assets/vi-design/sillroot/sillroot-01.jpg', works: Array.from({ length: 14 }, (_, index) => `/assets/vi-design/sillroot/sillroot-${String(index + 1).padStart(2, '0')}.jpg`) },
+  { slug: 'tfit', number: '02', title: 'TFIT', english: 'E-CIGARETTE BRAND IDENTITY', description: '电子烟品牌视觉识别与触点设计。', image: '/assets/vi-design/vi-design-01.jpg', works: Array.from({ length: 23 }, (_, index) => `/assets/vi-design/vi-design-${String(index + 1).padStart(2, '0')}.jpg`) },
+]
 const designCategories = [
-  { slug: 'website-design', number: '01', title: '网站设计', english: 'WEBSITE DESIGN', image: '/assets/design-cover-website.jpg', description: '品牌官网与数字界面的视觉体验。', works: ['/assets/website-design-08.jpg', '/assets/website-design-09.jpg', '/assets/website-design-10.jpg', '/assets/website-design-11.jpg'] },
+  { slug: 'vi-design', number: '01', title: 'VI 设计', english: 'VISUAL IDENTITY', image: '/assets/vi-design/vi-design-01.jpg', description: '从品牌理念到视觉规范，构建统一而鲜明的品牌识别系统。', works: [] },
   { slug: 'amazon-store-design', number: '02', title: '亚马逊旗舰店设计', english: 'AMAZON FLAGSHIP STORE', image: '/assets/design-cover-amazon-store.jpg', description: '围绕品牌与产品建立完整的店铺视觉。', works: ['/assets/amazon-store-01.jpg', '/assets/amazon-store-02.jpg', '/assets/amazon-store-03.jpg', '/assets/amazon-store-04.jpg', '/assets/amazon-store-05.jpg', '/assets/amazon-store-06.jpg', '/assets/amazon-store-07.jpg', '/assets/amazon-store-08.jpg', '/assets/amazon-store-09.jpg', '/assets/amazon-store-10.jpg'] },
   { slug: 'detail-page-design', number: '03', title: '详情页设计', english: 'PRODUCT DETAIL PAGE', image: '/assets/design-cover-detail-page.jpg', description: '从产品卖点到场景化内容的清晰表达。', works: ['/assets/detail-preview-01.jpg', '/assets/detail-preview-02.png', '/assets/detail-preview-03.jpg', '/assets/detail-preview-04.png', '/assets/detail-preview-05-foldable-headphones.jpg', '/assets/detail-preview-06-aebar-blueberry.png', '/assets/detail-preview-07-cat-fountain.png', '/assets/detail-preview-08-handheld-fan.jpg'] },
   { slug: 'commercial-design', number: '04', title: '商业设计', english: 'COMMERCIAL DESIGN', image: '/assets/design-cover-commercial.jpg', description: '品牌活动、视觉传播与商业内容设计。', works: ['/assets/work-showcase-04.jpg', '/assets/work-showcase-05.jpg', '/assets/work-showcase-02.jpg'] },
-  { slug: 'vi-design', number: '05', title: 'VI 设计', english: 'VISUAL IDENTITY', image: '/assets/vi-design/vi-design-01.jpg', description: '从品牌理念到视觉规范，构建统一而鲜明的品牌识别系统。', works: Array.from({ length: 23 }, (_, index) => `/assets/vi-design/vi-design-${String(index + 1).padStart(2, '0')}.jpg`) },
+  { slug: 'video-work', href: '/video', number: '05', title: '视频作品', english: 'VIDEO / MOTION', image: '/assets/motion-reel-01-poster.jpg', description: '产品动画、品牌动态与视频内容精选。', works: [] },
+  { slug: 'website-design', number: '06', title: '网站设计', english: 'WEBSITE DESIGN', image: '/assets/design-cover-website.jpg', description: '品牌官网与数字界面的视觉体验。', works: ['/assets/website-design-08.jpg', '/assets/website-design-09.jpg', '/assets/website-design-10.jpg', '/assets/website-design-11.jpg'] },
 ]
 
 const detailWorkSections = {
@@ -430,7 +612,7 @@ const emptyDetailWorkSections = [
 
 function DesignCategoryLinks() {
   return <div className="design-category-grid">
-    {designCategories.map((category) => <a className="design-category-card" href={`/${category.slug}`} key={category.slug}>
+    {designCategories.map((category) => <a className="design-category-card" href={category.href ?? `/${category.slug}`} key={category.slug}>
       <img src={category.image} alt="" />
       <span className="design-category-shade" />
       <span className="design-category-number">{category.number}</span>
@@ -474,15 +656,33 @@ function CommercialDesignShowcase() {
     </div>}
   </div></section>
 }
+function ViDesignShowcase({ project }) {
+  if (project) return <section className="category-showcase vi-project-showcase"><div className="shell">
+    {project.works.map((image, index) => <figure key={image}><img src={image} alt={`${project.title} VI 设计第 ${index + 1} 页`} loading={index > 1 ? 'lazy' : undefined} decoding="async" /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{project.title} / VISUAL IDENTITY</span></figcaption></figure>)}
+  </div></section>
+
+  return <section className="vi-project-index"><div className="shell"><div className="vi-project-grid">
+    {viProjects.map((item) => <a className={`vi-project-card vi-project-card--${item.slug}`} href={`/vi-design?brand=${item.slug}`} key={item.slug}>
+      <img src={item.image} alt={`${item.title} VI 设计封面`} />
+      <span className="vi-project-card-shade" />
+      <span className="vi-project-card-number">{item.number}</span>
+      <span className="vi-project-card-copy"><small>{item.english}</small><strong>{item.title}</strong><em>{String(item.works.length).padStart(2, '0')} PAGES</em></span>
+      <b aria-hidden="true">↗</b>
+    </a>)}
+  </div></div></section>
+}
+
 function DesignCategoryPage({ category }) {
+  const requestedBrand = category.slug === 'vi-design' ? new URLSearchParams(window.location.search).get('brand') : null
+  const viProject = requestedBrand ? viProjects.find((project) => project.slug === requestedBrand) : null
   return <main className={`secondary-page category-page category-page--${category.slug}`}>
-    <FloatingHeader active="design" backHref="/design" />
+    <PortfolioNav activeTab="work" backHref={viProject ? '/vi-design' : '/design'} />
     <section className="secondary-hero category-hero"><div className="shell">
-      <p className="secondary-kicker">DESIGN WORK / {category.english}</p>
-      <h1>{category.title}</h1>
-      <p>{category.description}</p>
+      <p className="secondary-kicker">DESIGN WORK / {viProject?.english ?? category.english}</p>
+      <h1>{viProject?.title ?? category.title}</h1>
+      <p>{viProject?.description ?? category.description}</p>
     </div></section>
-    {category.slug === 'commercial-design' ? <CommercialDesignShowcase /> : <section className="category-showcase"><div className="shell">
+    {category.slug === 'vi-design' ? <ViDesignShowcase project={viProject} /> : category.slug === 'commercial-design' ? <CommercialDesignShowcase /> : <section className="category-showcase"><div className="shell">
       {category.works.map((image, index) => category.slug === 'detail-page-design'
         ? <a className="category-preview-link" href={`/${category.slug}?work=${index + 1}`} aria-label={`查看${category.title}作品 ${index + 1}`} key={image}><figure><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{category.english}</span></figcaption></figure></a>
         : <figure key={image}><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{category.english}</span></figcaption></figure>)}
@@ -549,7 +749,7 @@ function APlusGallery({ images, carouselGroups = [], alt }) {
 function DesignWorkDetailPage({ category, sections, index }) {
   const number = String(index + 1).padStart(2, '0')
   return <main className={`secondary-page category-page category-page--${category.slug} work-detail-page`}>
-    <FloatingHeader active="design" backHref={`/${category.slug}`} />
+    <PortfolioNav activeTab="work" backHref={`/${category.slug}`} />
     <section className="secondary-hero category-hero work-detail-hero"><div className="shell">
       <p className="secondary-kicker">{category.english} / WORK {number}</p>
       <h1>作品 {number}</h1>
@@ -574,12 +774,12 @@ function DesignWorkDetailPage({ category, sections, index }) {
 function SecondaryPage({ type }) {
   const isDesign = type === 'design'
   return <main className="secondary-page">
-    <FloatingHeader active={type} backHref="/" />
+    <PortfolioNav activeTab={isDesign ? 'work' : ''} backHref="/" />
     <section className="secondary-hero">
       <div className="shell">
         <p className="secondary-kicker">{isDesign ? 'DESIGN WORK / 平面作品' : 'VIDEO / 视频作品'}</p>
         <h1>{isDesign ? <>DESIGN <i>WORK.</i></> : <>VIDEO <i>WORK.</i></>}</h1>
-        <p>{isDesign ? '品牌、电商与数字视觉作品精选。' : '产品动画、品牌动态与视频内容精选。'}</p>
+        <p>{isDesign ? '品牌、电商、动态与数字视觉作品精选。' : '产品动画、品牌动态与视频内容精选。'}</p>
       </div>
     </section>
     {isDesign ? <section className="secondary-content"><div className="shell">
@@ -589,6 +789,217 @@ function SecondaryPage({ type }) {
   </main>
 }
 
+function PortfolioJourney() {
+  const sectionRef = useRef(null)
+  const portraitTiltRef = useRef(null)
+  const experiencePanelRef = useRef(null)
+  const [activeTab, setActiveTab] = useState('home')
+
+  const handlePortraitMove = (event) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !window.matchMedia('(pointer: fine)').matches) return
+    const portrait = event.currentTarget
+    const tiltLayer = portraitTiltRef.current
+    if (!tiltLayer) return
+    const bounds = portrait.getBoundingClientRect()
+    const horizontal = ((event.clientX - bounds.left) / bounds.width - .5) * 2
+    const vertical = ((event.clientY - bounds.top) / bounds.height - .5) * 2
+    tiltLayer.style.setProperty('--portrait-rotate-x', `${vertical * -8}deg`)
+    tiltLayer.style.setProperty('--portrait-rotate-y', `${horizontal * 10}deg`)
+  }
+
+  const resetPortraitTilt = () => {
+    const tiltLayer = portraitTiltRef.current
+    if (!tiltLayer) return
+    tiltLayer.style.setProperty('--portrait-rotate-x', '0deg')
+    tiltLayer.style.setProperty('--portrait-rotate-y', '0deg')
+  }
+
+  useLayoutEffect(() => {
+    const section = sectionRef.current
+    if (!section || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+
+    gsap.registerPlugin(ScrollTrigger)
+    const stage = section.querySelector('.journey-stage')
+    let replayAboutIntro = () => {}
+    let prepareAboutIntro = () => {}
+    const context = gsap.context(() => {
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: '+=1900',
+          pin: stage,
+          scrub: 1.1,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const isExperience = self.progress > .52
+            section.classList.toggle('is-experience', isExperience)
+            setActiveTab(isExperience ? 'experience' : 'about')
+          },
+          onLeaveBack: () => setActiveTab('home'),
+          onLeave: () => setActiveTab('work'),
+        },
+      })
+
+      const introTargets = '.journey-about-copy > *'
+      const resetAboutIntro = () => {
+        gsap.set('.journey-about-panel', { autoAlpha: 1 })
+        gsap.set('.journey-about-copy', { autoAlpha: 1, x: 0, y: 0 })
+        gsap.set(introTargets, { autoAlpha: 0, x: -72, y: 18 })
+        gsap.set('.journey-portrait', { autoAlpha: 0, x: 90, scale: .74, rotate: 5 })
+        gsap.set('.journey-deck', { autoAlpha: 1, x: 0, y: 0, scale: 1 })
+        gsap.set('.journey-deck>p', { autoAlpha: 0, y: 42 })
+        gsap.set('.journey-card-slot', { autoAlpha: 0, y: 120, scale: .8 })
+      }
+
+      resetAboutIntro()
+      const introTimeline = gsap.timeline({
+        paused: true,
+        onComplete: () => section.classList.remove('is-about-intro-playing'),
+      })
+        .to(introTargets, { autoAlpha: 1, x: 0, y: 0, duration: .82, stagger: .16, ease: 'power3.out' }, 0)
+        .to('.journey-portrait', { autoAlpha: 1, x: 0, scale: 1, rotate: 0, duration: 1.05, ease: 'back.out(1.12)' }, 0)
+        .to('.journey-deck>p', { autoAlpha: 1, y: 0, duration: .65, ease: 'power3.out' }, 1.25)
+        .to('.journey-card-slot', { autoAlpha: 1, y: 0, scale: 1, duration: .9, stagger: .085, ease: 'back.out(1.06)' }, 1.48)
+
+      const playAboutIntro = () => {
+        if (introTimeline.isActive()) return
+        section.classList.remove('is-returning-about')
+        resetAboutIntro()
+        section.classList.add('is-about-intro-playing')
+        introTimeline.restart(true)
+      }
+      prepareAboutIntro = () => {
+        introTimeline.pause(0)
+        section.classList.remove('is-about-intro-playing')
+        section.classList.add('is-returning-about')
+        resetAboutIntro()
+      }
+      replayAboutIntro = playAboutIntro
+
+      ScrollTrigger.create({
+        trigger: section,
+        start: 'top 70%',
+        onEnter: playAboutIntro,
+      })
+      gsap.delayedCall(.05, () => {
+        const bounds = section.getBoundingClientRect()
+        if (bounds.top <= window.innerHeight * .7 && bounds.bottom > 0) playAboutIntro()
+      })
+
+      timeline
+        .to({}, { duration: .72 })
+        .to('.journey-about-copy', { x: -90, autoAlpha: 0, duration: .7, ease: 'power2.inOut' }, .72)
+        .to('.journey-deck', { y: -120, scale: .9, autoAlpha: 0, duration: .62, ease: 'power2.inOut' }, .78)
+        .to('.journey-about-panel', { autoAlpha: 0, duration: .2 }, 1.18)
+        .fromTo('.journey-exp-panel', { autoAlpha: 0, y: 90 }, { autoAlpha: 1, y: 0, duration: .82, ease: 'power3.out' }, 1.08)
+        .fromTo('.journey-exp-card', { autoAlpha: 0, x: (index) => index % 2 ? 90 : -90 }, { autoAlpha: 1, x: 0, duration: .62, stagger: .11, ease: 'power3.out' }, 1.26)
+        .fromTo('.journey-progress-fill', { scaleY: 0 }, { scaleY: 1, duration: .9, ease: 'none' }, 1.18)
+    }, section)
+
+    const updateActiveTab = () => {
+      const journeyBounds = section.getBoundingClientRect()
+      if (section.classList.contains('is-experience') && journeyBounds.top <= 2 && journeyBounds.bottom > window.innerHeight * .5) {
+        setActiveTab('experience')
+        return
+      }
+
+      const sections = [
+        ['contact', document.querySelector('#contact')],
+        ['strength', document.querySelector('#strength')],
+        ['work', document.querySelector('#work')],
+      ]
+      const current = sections.find(([, node]) => node?.getBoundingClientRect().top <= window.innerHeight * .42)
+      if (current) setActiveTab(current[0])
+      else if (section.getBoundingClientRect().top <= window.innerHeight * .42) setActiveTab('about')
+      else setActiveTab('home')
+    }
+
+    const handleAboutReplay = () => replayAboutIntro()
+    const handleAboutPrepare = () => prepareAboutIntro()
+    section.addEventListener('portfolio:prepare-about', handleAboutPrepare)
+    section.addEventListener('portfolio:replay-about', handleAboutReplay)
+    window.addEventListener('scroll', updateActiveTab, { passive: true })
+    updateActiveTab()
+
+    return () => {
+      section.classList.remove('is-returning-about', 'is-about-intro-playing')
+      section.removeEventListener('portfolio:prepare-about', handleAboutPrepare)
+      section.removeEventListener('portfolio:replay-about', handleAboutReplay)
+      window.removeEventListener('scroll', updateActiveTab)
+      context.revert()
+    }
+  }, [])
+
+  const cardAngles = [-6, -4.5, -3, -1.5, 0, 1.5, 3, 4.5, 6]
+  const cardLifts = [0, -8, -16, -23, -28, -23, -16, -8, 0]
+
+  return <section className="journey-scroll" id="about" ref={sectionRef}>
+    <PortfolioNav activeTab={activeTab} />
+
+    <div className="journey-stage">
+      <div className="journey-frame">
+
+        <div className="journey-panel journey-about-panel">
+          <div className="journey-about-copy">
+            <p className="journey-eyebrow">HELLO / 你好</p>
+            <h2>我是 <b>Echo</b><small>PORTFOLIO</small></h2>
+            <h3>视觉设计师 · AIGC 创意</h3>
+            <p className="journey-summary">8 年海外电商视觉经验，覆盖三维动画、平面视觉与视频全案。把 AI 创意、建模渲染和后期制作连接成高效工作流。</p>
+            <div className="journey-actions"><a href="#work">查看我的作品 <b>↗</b></a><a href="#contact">联系我</a></div>
+            <div className="journey-tags"><span tabIndex={0}>视觉系统 × AI 工作流<i aria-hidden="true">×</i></span><span tabIndex={0}>品牌视觉 / 3D 动态 / AIGC<i aria-hidden="true">×</i></span></div>
+          </div>
+
+          <figure className="journey-portrait" onPointerMove={handlePortraitMove} onPointerLeave={resetPortraitTilt}>
+            <div className="journey-portrait-tilt" ref={portraitTiltRef}>
+              <img src="/assets/echo-portrait.jpg" alt="设计师 Echo 肖像" />
+            </div>
+            <figcaption><b>NOW</b><span>开放合作 / 作品交流</span></figcaption>
+          </figure>
+
+          <div className="journey-deck" aria-label="精选案例">
+            <p>PORTFOLIO</p>
+            <div className="journey-cards">
+              {journeyProjects.map((project, index) => <div
+                className="journey-card-slot"
+                key={project.label}
+                style={{ '--card-rotation': `${cardAngles[index]}deg`, '--card-lift': `${cardLifts[index]}px`, '--card-index': index }}
+              >
+                <a className="journey-card" href={project.href}>
+                  <img src={project.image} alt={project.label} />
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <strong>{project.label}</strong>
+                </a>
+              </div>)}
+            </div>
+          </div>
+        </div>
+
+        <div className="journey-panel journey-exp-panel" id="journey-experience">
+          <header className="journey-exp-heading">
+            <p>02 / THE JOURNEY</p>
+            <h2>Work Experience</h2>
+            <span>个人经历 / 每一段经历都在形成现在的我</span>
+          </header>
+          <div className="journey-timeline-viewport" ref={experiencePanelRef}>
+            <div className="journey-timeline">
+              <div className="journey-progress"><span className="journey-progress-fill" /></div>
+              {experience.map((item, index) => <article className={`journey-exp-card ${index % 2 ? 'is-right' : 'is-left'}`} key={item.period} tabIndex={0}>
+                <span className="journey-exp-number">{index + 1}</span>
+                <time>{item.period}</time>
+                <div className="journey-exp-content">
+                  <h3>{item.company}</h3>
+                  <strong>{item.role}</strong>
+                  <p>{item.detail}</p>
+                </div>
+              </article>)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+}
 function usePortfolioMotion() {
   useLayoutEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
@@ -601,8 +1012,8 @@ function usePortfolioMotion() {
 
       if (hero) {
         const opening = gsap.timeline({ defaults: { ease: 'power4.out' } })
+        if (header) opening.fromTo(header, { autoAlpha: 0, y: -34 }, { autoAlpha: 1, y: 0, duration: .85 }, 0)
         opening
-          .fromTo(header, { autoAlpha: 0, y: -34 }, { autoAlpha: 1, y: 0, duration: .85 }, 0)
           .fromTo('.orbit-word-inner', { yPercent: 132, scaleX: .66, skewX: -9, transformOrigin: 'left bottom' }, { yPercent: 0, scaleX: 1, skewX: 0, duration: 1.8 }, .18)
           .fromTo(flower, { clipPath: 'inset(100% 0 0 0)', xPercent: -50, y: 105, scale: .82 }, { clipPath: 'inset(0% 0 0 0)', xPercent: -50, y: 0, scale: 1, duration: 1.65 }, .34)
           .fromTo('.orbit-sticker', { autoAlpha: 0, scale: .25, rotate: -24 }, { autoAlpha: 1, scale: 1, rotate: 0, duration: .9, stagger: .12, ease: 'expo.out' }, .92)
@@ -613,7 +1024,7 @@ function usePortfolioMotion() {
         { selector: '.about', cards: ['.portrait', '.about-intro', '.about-labels', '.about-profile', '.tool-card'], images: ['.portrait-photo'] },
         { selector: '.work', cards: ['.ag-panel'], images: ['.ag-media img'] },
         { selector: '.strength', cards: ['.strength-grid article'], images: [] },
-        { selector: '.scroll-stack', cards: ['.scroll-stack__heading', '.scroll-stack__dots'], images: [] },
+
         { selector: '.contact', cards: ['.contact-cta', '.footer-bottom'], images: [] },
       ]
 
@@ -666,56 +1077,148 @@ function usePortfolioMotion() {
     return () => context.revert()
   }, [])
 }
+function usePortfolioSectionPaging() {
+  useEffect(() => {
+    if (window.matchMedia('(max-width: 900px)').matches) return undefined
+
+    const hero = document.querySelector('.orbit-stage')
+    const journey = document.querySelector('.journey-scroll')
+    const work = document.querySelector('#work')
+    const strength = document.querySelector('#strength')
+    const contact = document.querySelector('#contact')
+    if (!hero || !journey || !work || !strength || !contact) return undefined
+
+    let locked = false
+    let unlockTimer = 0
+    let accumulatedDelta = 0
+    let resetDeltaTimer = 0
+    let experienceExitReady = false
+    let experienceExitTimer = 0
+    let aboutReplayTimer = 0
+
+    const pageTop = (node) => window.scrollY + node.getBoundingClientRect().top
+    const getStops = () => {
+      const journeyTrigger = ScrollTrigger.getAll().find(trigger => trigger.trigger === journey)
+      const journeyTop = journeyTrigger?.start ?? pageTop(journey)
+      const journeyEnd = journeyTrigger?.end ?? journeyTop + 1900
+      const journeyDistance = journeyEnd - journeyTop
+      const workTop = pageTop(work)
+      return [
+        { id: 'top', top: pageTop(hero) },
+        { id: 'about', top: journeyTop },
+        { id: 'journey-experience', top: journeyTop + journeyDistance * .96 },
+        { id: 'work', top: workTop },
+        { id: 'strength', top: pageTop(strength) },
+        { id: 'contact', top: pageTop(contact) },
+      ]
+    }
+
+    const jumpTo = ({ id, top }, { prepareAbout = false, experienceFromBottom = false } = {}) => {
+      locked = true
+      const historyId = id.startsWith('about-') ? 'about' : id
+      window.history.replaceState(null, '', historyId === 'top' ? `${window.location.pathname}${window.location.search}` : `#${historyId}`)
+      if (prepareAbout) journey.dispatchEvent(new Event('portfolio:prepare-about'))
+      if (experienceFromBottom) {
+        const timelineViewport = document.querySelector('.journey-timeline-viewport')
+        if (timelineViewport) timelineViewport.scrollTop = timelineViewport.scrollHeight
+      }
+      window.scrollTo({ top, behavior: 'smooth' })
+      window.clearTimeout(aboutReplayTimer)
+      if (prepareAbout) aboutReplayTimer = window.setTimeout(() => journey.dispatchEvent(new Event('portfolio:replay-about')), 900)
+      window.clearTimeout(unlockTimer)
+      unlockTimer = window.setTimeout(() => { locked = false }, 850)
+    }
+
+    const handleWheel = (event) => {
+      if (event.defaultPrevented || event.ctrlKey || Math.abs(event.deltaY) < 2 || event.target.closest('.portfolio-lightbox')) return
+      if (locked) {
+        event.preventDefault()
+        return
+      }
+
+      const stops = getStops()
+      const currentY = window.scrollY
+      const nearestIndex = stops.reduce((best, stop, index) => Math.abs(stop.top - currentY) < Math.abs(stops[best].top - currentY) ? index : best, 0)
+      const currentStop = stops[nearestIndex]
+      const experiencePanel = document.querySelector('.journey-timeline-viewport')
+
+      if (currentStop.id === 'about' && journey.classList.contains('is-about-intro-playing')) {
+        event.preventDefault()
+        return
+      }
+
+      if (currentStop.id === 'journey-experience' && experiencePanel) {
+        const atTop = experiencePanel.scrollTop <= 1
+        const atBottom = experiencePanel.scrollTop + experiencePanel.clientHeight >= experiencePanel.scrollHeight - 1
+
+        if ((event.deltaY < 0 && !atTop) || (event.deltaY > 0 && !atBottom)) {
+          event.preventDefault()
+          experienceExitReady = false
+          window.clearTimeout(experienceExitTimer)
+          experiencePanel.scrollBy({ top: event.deltaY, behavior: 'auto' })
+          return
+        }
+
+        if (event.deltaY > 0 && atBottom) {
+          if (!experienceExitReady) {
+            event.preventDefault()
+            window.clearTimeout(experienceExitTimer)
+            experienceExitTimer = window.setTimeout(() => { experienceExitReady = true }, 420)
+            return
+          }
+        } else {
+          experienceExitReady = false
+          window.clearTimeout(experienceExitTimer)
+        }
+      } else {
+        experienceExitReady = false
+        window.clearTimeout(experienceExitTimer)
+      }
+
+      const contactTop = pageTop(contact)
+      const insideContact = window.scrollY >= contactTop - 2
+      const belowContactTop = window.scrollY > contactTop + 2
+      if (insideContact && (event.deltaY > 0 || belowContactTop)) return
+
+      event.preventDefault()
+      accumulatedDelta += event.deltaY
+      window.clearTimeout(resetDeltaTimer)
+      resetDeltaTimer = window.setTimeout(() => { accumulatedDelta = 0 }, 180)
+      if (Math.abs(accumulatedDelta) < 18) return
+
+      const direction = accumulatedDelta > 0 ? 1 : -1
+      const targetIndex = Math.max(0, Math.min(stops.length - 1, nearestIndex + direction))
+      const targetStop = stops[targetIndex]
+      accumulatedDelta = 0
+      if (targetIndex !== nearestIndex) jumpTo(targetStop, {
+        prepareAbout: currentStop.id === 'journey-experience' && targetStop.id === 'about',
+        experienceFromBottom: currentStop.id === 'work' && targetStop.id === 'journey-experience',
+      })
+    }
+
+    window.addEventListener('wheel', handleWheel, { passive: false })
+    return () => {
+      window.clearTimeout(unlockTimer)
+      window.clearTimeout(resetDeltaTimer)
+      window.clearTimeout(experienceExitTimer)
+      window.clearTimeout(aboutReplayTimer)
+      window.removeEventListener('wheel', handleWheel)
+    }
+  }, [])
+}
 function App() {
   usePortfolioMotion()
-  return <main>
-    <FloatingHeader />
+  usePortfolioSectionPaging()
+  return <main id="top">
     <OrbitHero />
     <MarqueeStrip />
 
-    <section className="about section" id="about">
-      <div className="shell">
-        <div className="section-kicker"><span>01</span><span>ABOUT ECHO / DESIGNER PROFILE</span></div>
-        <div className="about-heading about-heading--collage">
-          <div><span className="about-handline">HEY, NICE TO MEET YOU!</span><h2>ABOUT <i>ME</i></h2></div>
-          <p>三维动画 · 平面设计 · 视频剪辑</p>
-          <img className="sticker sticker-burst" src="/assets/sticker-burst.png" alt="" aria-hidden="true" />
-        </div>
-        <div className="about-layout">
-          <figure className="portrait">
-            <img className="portrait-tape" src="/assets/polaroid-tape.png" alt="" aria-hidden="true" />
-            <div className="portrait-photo-wrap">
-              <img className="portrait-photo" src="/assets/echo-portrait.jpg" alt="设计师林婉秋肖像" />
-            </div>
-            <img className="sticker sticker-smiley" src="/assets/sticker-smiley.png" alt="" aria-hidden="true" />
-            <img className="sticker sticker-stamp" src="/assets/sticker-cat-stamp.png" alt="" aria-hidden="true" />
-            <figcaption className="polaroid-caption">
-              <div className="echo-name-sticker"><img src="/assets/echo-name-tag.png" alt="" aria-hidden="true" /><small>HELLO, I AM</small><strong>Echo</strong></div>
-              <div className="portrait-contact"><b>CONTACT ME</b><a href="tel:15975246069">+86 159 7524 6069</a><a href="mailto:echolin927@gmail.com">echolin927@gmail.com</a></div>
-            </figcaption>
-          </figure>
-          <div className="about-copy">
-            <div className="about-intro note-card">
-              <img className="stacked-paper-note" src="/assets/paperclip-stars-note.png" alt="" aria-hidden="true" />
-              <p className="intro"><span className="intro-lead">你好，我是<b>Echo</b></span><span className="intro-rest">8 年海外电商视觉设计师<br/>三维动画 + 平面 + 视频全能<br/>擅长 AIGC 绘图、模型训练，用 AI 赋能产品视觉全案。</span></p>
-            </div>
-            <div className="about-labels" aria-label="专业方向"><span>3D MOTION</span><span>BRAND VISUAL</span><span>AI CREATIVE</span></div>
-            <section className="about-profile" aria-label="个人简介">
-              <span className="about-profile-kicker">PROFILE / 个人简介</span>
-              <p>拥有 8 年实战经验的全能型设计师，深耕海外电商视觉领域，能力覆盖三维动画、平面视觉与视频全案制作。</p>
-              <p>过往任职期间，我担任过设计主管，具备团队搭建、工作统筹、设计规范制定与新人培训经验，独立操盘海外品牌 VI、产品包装、社媒宣传视频、产品动画、亚马逊详情视觉等项目，熟悉海外电商平台视觉逻辑。</p>
-              <p>除 PS、AI、Pr、Ae、犀牛、Keyshot 等传统设计工具外，我持续探索 AI 在设计领域的落地应用，熟练运用 AIGC 进行图像生成、素材创作，参与模型微调训练，使用 Codex 实现脚本自动化，打通「AI 创意生成 - 三维建模渲染 - 视频剪辑输出」的工作流，用 AI 工具放大设计产能，快速响应市场变化，为海外品牌打造兼具美感与转化力的视觉方案。</p>
-            </section>
-          </div>
-        </div>
-        <Toolkit />
-      </div>
-    </section>
+    <PortfolioJourney />
 
-    <section className="work section" id="work"><div className="shell"><div className="section-kicker"><span>02</span><span>SELECTED WORKS</span></div><div className="work-heading"><h2>SELECTED<br/><i>WORKS</i></h2><div className="work-heading-side"><p>以设计解决问题，<br/>以视觉留下余韵。</p><a className="work-more-link" href="/design">查看更多作品 <b>↗</b></a></div></div><AccordionGallery items={galleryProjects} defaultIndex={1} expandRatio={.48} accentColor="#fd86db" height={620} /></div></section>
+    <section className="work section" id="work"><div className="shell"><div className="work-intro"><div className="section-kicker"><span>03 / THE PRACTITIONER</span></div><div className="work-heading"><h2>Portfolio/<span>作品集</span></h2><a className="work-more-link" href="/design">查看更多作品 <b>↗</b></a></div></div><PortfolioMosaic items={galleryProjects} /><div className="portfolio-mosaic-footer"><span>3 / {galleryProjects.length}</span></div></div></section>
 
-    <section className="strength section shell" id="strength"><div className="section-kicker"><span>03</span><span>EXPERTISE</span></div><div className="strength-heading"><h2>BUILDING<br/>VISUAL <i>IMPACT</i></h2><p>在理性的方法中，保留感性的判断。</p></div><div className="strength-grid">{strengths.map(([number, title, text]) => <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div><b>↗</b></article>)}</div></section>
-    <MotionReels />
+    <section className="strength section" id="strength"><div className="shell strength-shell"><header className="strength-intro"><p>04 / WHAT I DO BEST</p><h2>Advantages/<span>个人优势</span></h2></header><div className="strength-grid">{strengths.map(({ number, keywords, points }, index) => <article className={`strength-card--${number}`} key={number} onPointerMove={handleStrengthCardMove} onPointerLeave={handleStrengthCardLeave}><div className="strength-card-meta"><span>{number} / CORE</span><b>×</b></div><div className="strength-card-copy"><h3>{keywords.map(keyword => <strong key={keyword}>{keyword}</strong>)}</h3><ol>{points.map(point => <li key={point}>{point}</li>)}</ol></div><i aria-hidden="true">{['⌒', '☆', '◡', '✦'][index]}</i></article>)}</div></div></section>
+
 
     <footer className="contact" id="contact">
       <div className="shell contact-inner">

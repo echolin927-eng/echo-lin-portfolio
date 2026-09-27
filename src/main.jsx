@@ -672,9 +672,23 @@ function ViDesignShowcase({ project }) {
   </div></div></section>
 }
 
+function ManagedProjectGrid({ category }) {
+  const [projects, setProjects] = useState([])
+  useEffect(() => { let active = true; fetch(`/api/portfolio?category=${encodeURIComponent(category.slug)}`).then(response => response.ok ? response.json() : { projects: [] }).then(data => { if (active) setProjects(data.projects ?? []) }).catch(() => {}); return () => { active = false } }, [category.slug])
+  if (!projects.length) return null
+  return <section className="managed-projects"><div className="shell"><header className="managed-projects-title"><small>NEW / 后台更新</small><h2>最新作品</h2></header><div className="managed-project-grid">{projects.map((project, index) => <a href={`/${category.slug}?project=${project.id}`} className="managed-project-card" key={project.id}><div>{project.images[0] ? <img src={project.images[0].url} alt={`${project.title}封面`} loading="lazy" /> : <span>IMAGE COMING SOON</span>}<b>↗</b></div><small>{String(index + 1).padStart(2, '0')} · {project.english || category.english}</small><h3>{project.title}</h3><p>{project.description}</p></a>)}</div></div></section>
+}
+function ManagedProjectDetail({ category, projectId }) {
+  const [project, setProject] = useState(undefined)
+  useEffect(() => { fetch(`/api/portfolio?category=${encodeURIComponent(category.slug)}`).then(response => response.ok ? response.json() : { projects: [] }).then(data => setProject((data.projects ?? []).find(item => item.id === projectId) ?? null)).catch(() => setProject(null)) }, [category.slug, projectId])
+  return <main className={`secondary-page category-page category-page--${category.slug} managed-project-detail`}><PortfolioNav activeTab="work" backHref={`/${category.slug}`} />{project === undefined ? <div className="managed-project-status">正在载入作品…</div> : project === null ? <div className="managed-project-status"><h1>没有找到这个作品</h1><a href={`/${category.slug}`}>← 返回作品列表</a></div> : <><section className="secondary-hero category-hero"><div className="shell"><p className="secondary-kicker">{category.english} / MANAGED WORK</p><h1>{project.title}</h1><p>{project.description}</p></div></section><section className="managed-project-gallery"><div className="shell">{project.images.length ? project.images.map((image, index) => <figure key={image.id}><img src={image.url} alt={image.alt || `${project.title}作品图 ${index + 1}`} loading={index > 1 ? 'lazy' : undefined} /><figcaption>{String(index + 1).padStart(2, '0')} / {project.english || category.english}</figcaption></figure>) : <div className="managed-project-status">图片待上传</div>}</div></section></>}<footer className="secondary-footer"><div className="shell"><a href={`/${category.slug}`}>← 返回{category.title}</a><a className="site-filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">粤ICP备2026141529号-1</a><a href="/#contact">联系我 ↗</a></div></footer></main>
+}
 function DesignCategoryPage({ category }) {
-  const requestedBrand = category.slug === 'vi-design' ? new URLSearchParams(window.location.search).get('brand') : null
+  const search = new URLSearchParams(window.location.search)
+  const managedProjectId = search.get('project')
+  const requestedBrand = category.slug === 'vi-design' ? search.get('brand') : null
   const viProject = requestedBrand ? viProjects.find((project) => project.slug === requestedBrand) : null
+  if (managedProjectId) return <ManagedProjectDetail category={category} projectId={managedProjectId} />
   return <main className={`secondary-page category-page category-page--${category.slug}`}>
     <PortfolioNav activeTab="work" backHref={viProject ? '/vi-design' : '/design'} />
     <section className="secondary-hero category-hero"><div className="shell">
@@ -687,6 +701,7 @@ function DesignCategoryPage({ category }) {
         ? <a className="category-preview-link" href={`/${category.slug}?work=${index + 1}`} aria-label={`查看${category.title}作品 ${index + 1}`} key={image}><figure><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{category.english}</span></figcaption></figure></a>
         : <figure key={image}><img src={image} alt={`${category.title}作品 ${index + 1}`} /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{category.english}</span></figcaption></figure>)}
     </div></section>}
+    {!viProject && <ManagedProjectGrid category={category} />}
     <footer className="secondary-footer"><div className="shell"><a href="/design">← 返回平面作品</a><a className="site-filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">粤ICP备2026141529号-1</a><a href="/#contact">联系我 ↗</a></div></footer>
   </main>
 }

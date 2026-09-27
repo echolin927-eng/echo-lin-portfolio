@@ -15,6 +15,8 @@ export default defineConfig({
         detailPageDesign: resolve(import.meta.dirname, 'detail-page-design.html'),
         commercialDesign: resolve(import.meta.dirname, 'commercial-design.html'),
         viDesign: resolve(import.meta.dirname, 'vi-design.html'),
+        admin: resolve(import.meta.dirname, 'admin.html'),
+        adminIndex: resolve(import.meta.dirname, 'admin/index.html'),
       },
     },
   },

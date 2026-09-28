@@ -26,6 +26,7 @@ CONFIG_PATH = Path(os.environ.get("PORTFOLIO_CONFIG", "/etc/echo-portfolio/confi
 DB_PATH = DATA_DIR / "portfolio.db"
 MEDIA_DIR = DATA_DIR / "media"
 TRASH_DIR = DATA_DIR / "trash"
+ASSET_ROOT = Path(os.environ.get("PORTFOLIO_ASSET_ROOT", "/www/wwwroot/echolin.com.cn/assets"))
 COOKIE_NAME = "portfolio_admin"
 SESSION_AGE = 43200
 MAX_BODY = 260 * 1024 * 1024
@@ -83,6 +84,10 @@ def init_storage():
         );
         CREATE INDEX IF NOT EXISTS projects_category_idx ON projects(category,published,sort_order,deleted_at);
         CREATE INDEX IF NOT EXISTS images_project_idx ON images(project_id,sort_order,deleted_at);
+        CREATE TABLE IF NOT EXISTS site_assets (
+          path TEXT PRIMARY KEY, replacement_key TEXT, hidden INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL
+        );
         """)
 
 def connect():
@@ -112,6 +117,28 @@ def image_kind(head):
     if head.startswith(b"RIFF") and head[8:12] == b"WEBP": return "webp"
     if len(head) > 12 and head[4:12] in (b"ftypavif", b"ftypavis"): return "avif"
     return None
+
+def asset_group(path):
+    lower = path.lower()
+    if "/vi-design/" in lower: return "VI 设计"
+    if "amazon-store" in lower: return "亚马逊店铺"
+    if "detail" in lower or "aebar" in lower or "fountain" in lower: return "详情页设计"
+    if "commercial" in lower: return "商业设计"
+    if "website" in lower or "web-page" in lower: return "网站设计"
+    if "video" in lower or "motion" in lower or "reel" in lower: return "视频封面"
+    return "首页与共用素材"
+
+def asset_catalog(db):
+    overrides = {row["path"]: row for row in db.execute("SELECT * FROM site_assets").fetchall()}
+    paths = set(overrides)
+    if ASSET_ROOT.is_dir():
+        for file_path in ASSET_ROOT.rglob("*"):
+            if file_path.is_file() and file_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"}:
+                paths.add("/assets/" + file_path.relative_to(ASSET_ROOT).as_posix())
+    return [{"path": item, "label": Path(item).name, "group": asset_group(item), "original_url": item,
+             "url": "/portfolio-media/" + quote(overrides[item]["replacement_key"]) if item in overrides and overrides[item]["replacement_key"] else item,
+             "replaced": bool(item in overrides and overrides[item]["replacement_key"]), "hidden": bool(overrides[item]["hidden"]) if item in overrides else False}
+            for item in sorted(paths, key=lambda value: (asset_group(value), value))]
 
 def project_rows(db, category=None, include_drafts=False, deleted=False):
     conditions = ["deleted_at IS NOT NULL" if deleted else "deleted_at IS NULL"]
@@ -186,6 +213,9 @@ class Handler(BaseHTTPRequestHandler):
         with connect() as db:
             if parts == ["status"]:
                 self.json({"configured": bool(CONFIG.get("password_hash"))}); return
+            if parts == ["content"]:
+                rows = db.execute("SELECT path,replacement_key,hidden FROM site_assets WHERE replacement_key IS NOT NULL OR hidden=1").fetchall()
+                self.json({"assets": {row["path"]: {"url": "/portfolio-media/" + quote(row["replacement_key"]) if row["replacement_key"] else None, "hidden": bool(row["hidden"])} for row in rows}}); return
             if not parts:
                 category = parse_qs(parsed.query).get("category", [None])[0]
                 self.json({"projects": project_rows(db, category)}); return
@@ -194,6 +224,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if parts == ["admin", "trash"]:
                 if self.require_admin(): self.json({"projects": project_rows(db, include_drafts=True, deleted=True)})
+                return
+            if parts == ["admin", "assets"]:
+                if self.require_admin(): self.json({"assets": asset_catalog(db)})
                 return
         self.fail("接口不存在。", 404)
 
@@ -206,6 +239,9 @@ class Handler(BaseHTTPRequestHandler):
             self.json({"ok": True}, headers={"Set-Cookie": COOKIE_NAME + "=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0"}); return
         if not self.require_admin(): return
         with connect() as db:
+            if parts == ["admin", "assets", "replace"]: self.replace_asset(db); return
+            if parts == ["admin", "assets", "visibility"]: self.asset_visibility(db); return
+            if parts == ["admin", "assets", "reset"]: self.reset_asset(db); return
             if parts == ["admin", "projects"]:
                 item = clean_project(self.body_json())
                 if not item["title"] or item["category"] not in CATEGORIES: self.fail("作品名称或分类无效。"); return
@@ -249,6 +285,51 @@ class Handler(BaseHTTPRequestHandler):
             if len(parts)==3 and parts[:2]==["admin","images"]:
                 db.execute("UPDATE images SET deleted_at=? WHERE id=? AND deleted_at IS NULL",(now_iso(),parts[2])); db.commit(); self.json({"ok":True}); return
         self.fail("接口不存在。",404)
+
+    def valid_asset(self, db, path):
+        return any(item["path"] == path for item in asset_catalog(db))
+
+    def replace_asset(self, db):
+        length = int(self.headers.get("Content-Length", "0") or 0)
+        if length <= 0 or length > MAX_FILE + 1024 * 1024: self.fail("上传内容为空或超过 25MB。", 413); return
+        form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ={"REQUEST_METHOD":"POST", "CONTENT_TYPE":self.headers.get("Content-Type", ""), "CONTENT_LENGTH":str(length)})
+        asset_path = str(form.getfirst("path", "")); item = form["image"] if "image" in form else None
+        if not self.valid_asset(db, asset_path) or item is None or not getattr(item, "filename", None): self.fail("请选择有效的站点图片。"); return
+        head = item.file.read(16); extension = image_kind(head)
+        if not extension: self.fail("仅支持 JPG、PNG、WebP、GIF 或 AVIF 图片。"); return
+        folder = MEDIA_DIR / "site-assets"; folder.mkdir(parents=True, exist_ok=True)
+        file_key = "site-assets/" + str(uuid.uuid4()) + "." + extension; output_path = MEDIA_DIR / file_key; size = len(head)
+        try:
+            with output_path.open("wb") as output:
+                output.write(head)
+                while True:
+                    chunk = item.file.read(1024 * 1024)
+                    if not chunk: break
+                    size += len(chunk)
+                    if size > MAX_FILE: raise ValueError("图片超过 25MB。")
+                    output.write(chunk)
+            old = db.execute("SELECT replacement_key FROM site_assets WHERE path=?", (asset_path,)).fetchone()
+            db.execute("INSERT OR REPLACE INTO site_assets(path,replacement_key,hidden,updated_at) VALUES(?,?,0,?)", (asset_path,file_key,now_iso())); db.commit()
+            if old and old["replacement_key"]:
+                previous = MEDIA_DIR / old["replacement_key"]
+                if previous.is_file(): previous.unlink()
+            self.json({"ok": True}, 201)
+        except Exception as exc:
+            if output_path.exists(): output_path.unlink()
+            self.fail(str(exc))
+
+    def asset_visibility(self, db):
+        payload = self.body_json(); asset_path = str(payload.get("path", "")); hidden = 1 if payload.get("hidden") else 0
+        if not self.valid_asset(db, asset_path): self.fail("站点图片不存在。", 404); return
+        old = db.execute("SELECT replacement_key FROM site_assets WHERE path=?", (asset_path,)).fetchone(); replacement = old["replacement_key"] if old else None
+        db.execute("INSERT OR REPLACE INTO site_assets(path,replacement_key,hidden,updated_at) VALUES(?,?,?,?)", (asset_path,replacement,hidden,now_iso())); db.commit(); self.json({"ok": True})
+
+    def reset_asset(self, db):
+        asset_path = str(self.body_json().get("path", "")); row = db.execute("SELECT replacement_key FROM site_assets WHERE path=?", (asset_path,)).fetchone()
+        if row and row["replacement_key"]:
+            previous = MEDIA_DIR / row["replacement_key"]
+            if previous.is_file(): previous.unlink()
+        db.execute("DELETE FROM site_assets WHERE path=?", (asset_path,)); db.commit(); self.json({"ok": True})
 
     def configure_admin(self):
         if CONFIG.get("password_hash"):

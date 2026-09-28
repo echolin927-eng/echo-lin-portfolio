@@ -1,6 +1,7 @@
 import { StrictMode, useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './admin-v2.css'
+import SiteAssets from './admin-assets'
 
 const API = '/api/portfolio'
 const categories = [
@@ -154,6 +155,7 @@ function Trash({ projects, onRestore, onPurge }) {
 function Dashboard({ onLogout }) {
   const [projects, setProjects] = useState([])
   const [trash, setTrash] = useState([])
+  const [assets, setAssets] = useState([])
   const [selected, setSelected] = useState(undefined)
   const [filter, setFilter] = useState('all')
   const [view, setView] = useState('projects')
@@ -161,8 +163,8 @@ function Dashboard({ onLogout }) {
   const [error, setError] = useState('')
   const load = async keepId => {
     try {
-      const [active, deleted] = await Promise.all([request('/admin/projects'), request('/admin/trash')])
-      setProjects(active.projects); setTrash(deleted.projects)
+      const [active, deleted, media] = await Promise.all([request('/admin/projects'), request('/admin/trash'), request('/admin/assets')])
+      setProjects(active.projects); setTrash(deleted.projects); setAssets(media.assets)
       if (keepId) setSelected(active.projects.find(item => item.id === keepId))
     } catch (reason) { if (reason.status === 401) onLogout(); else setError(reason.message) }
     finally { setLoading(false) }
@@ -177,13 +179,13 @@ function Dashboard({ onLogout }) {
   }
   return <main className="dashboard"><aside>
     <a href="/" className="admin-brand">ECHO LIN <span>®</span></a>
-    <nav><button className={view === 'projects' && filter === 'all' ? 'active' : ''} onClick={() => { setView('projects'); setFilter('all') }}><span>全部作品</span><b>{projects.length}</b></button>{categories.map(([value, label]) => <button className={view === 'projects' && filter === value ? 'active' : ''} onClick={() => { setView('projects'); setFilter(value) }} key={value}><span>{label}</span><b>{projects.filter(item => item.category === value).length}</b></button>)}<button className={view === 'trash' ? 'active' : ''} onClick={() => setView('trash')}><span>回收站</span><b>{trash.length}</b></button></nav>
+    <nav><button className={view === 'assets' ? 'active' : ''} onClick={() => setView('assets')}><span>站点图片</span><b>{assets.length}</b></button><button className={view === 'projects' && filter === 'all' ? 'active' : ''} onClick={() => { setView('projects'); setFilter('all') }}><span>全部作品</span><b>{projects.length}</b></button>{categories.map(([value, label]) => <button className={view === 'projects' && filter === value ? 'active' : ''} onClick={() => { setView('projects'); setFilter(value) }} key={value}><span>{label}</span><b>{projects.filter(item => item.category === value).length}</b></button>)}<button className={view === 'trash' ? 'active' : ''} onClick={() => setView('trash')}><span>回收站</span><b>{trash.length}</b></button></nav>
     <div className="aside-footer"><a href="/design" target="_blank">查看前台 ↗</a><button onClick={logout}>退出登录</button></div>
   </aside><section className="dashboard-content">
-    <header><div><p>PORTFOLIO CONTROL</p><h1>{view === 'trash' ? '回收站' : '作品管理'}</h1></div>{view === 'projects' && <button className="primary" onClick={() => setSelected(null)}>＋ 添加作品</button>}</header>
-    <div className="summary"><span><b>{projects.length}</b>全部作品</span><span><b>{projects.filter(item => item.published).length}</b>已发布</span><span><b>{projects.reduce((sum, item) => sum + item.images.length, 0)}</b>张图片</span></div>
+    <header><div><p>PORTFOLIO CONTROL</p><h1>{view === 'trash' ? '回收站' : view === 'assets' ? '站点图片管理' : '作品管理'}</h1></div>{view === 'projects' && <button className="primary" onClick={() => setSelected(null)}>＋ 添加作品</button>}</header>
+    {view !== 'assets' && <div className="summary"><span><b>{projects.length}</b>全部作品</span><span><b>{projects.filter(item => item.published).length}</b>已发布</span><span><b>{projects.reduce((sum, item) => sum + item.images.length, 0)}</b>张图片</span></div>}
     {error && <p className="message is-error">{error}</p>}
-    {loading ? <div className="empty-state">正在载入作品…</div> : view === 'trash' ? <Trash projects={trash} onRestore={restore} onPurge={purge} /> : visible.length ? <div className="project-grid">{visible.map(project => <button className="project-card" key={project.id} onClick={() => setSelected(project)}><div className="project-cover">{project.images[0] ? <img src={project.images[0].url} alt="" /> : <span>NO IMAGE</span>}<i className={project.published ? 'published' : ''}>{project.published ? '已发布' : '草稿'}</i></div><div className="project-meta"><small>{categories.find(([value]) => value === project.category)?.[1]}</small><h2>{project.title}</h2><p>{project.images.length} 张图片 · 排序 {project.sort_order}</p></div></button>)}</div> : <div className="empty-state"><strong>这个分类还没有后台作品</strong><p>点击右上角“添加作品”开始上传。</p></div>}
+    {loading ? <div className="empty-state">正在载入内容…</div> : view === 'assets' ? <SiteAssets assets={assets} request={request} reload={load} /> : view === 'trash' ? <Trash projects={trash} onRestore={restore} onPurge={purge} /> : visible.length ? <div className="project-grid">{visible.map(project => <button className="project-card" key={project.id} onClick={() => setSelected(project)}><div className="project-cover">{project.images[0] ? <img src={project.images[0].url} alt="" /> : <span>NO IMAGE</span>}<i className={project.published ? 'published' : ''}>{project.published ? '已发布' : '草稿'}</i></div><div className="project-meta"><small>{categories.find(([value]) => value === project.category)?.[1]}</small><h2>{project.title}</h2><p>{project.images.length} 张图片 · 排序 {project.sort_order}</p></div></button>)}</div> : <div className="empty-state"><strong>这个分类还没有后台作品</strong><p>点击右上角“添加作品”开始上传。</p></div>}
   </section>{selected !== undefined && <Editor project={selected} onClose={() => setSelected(undefined)} onSaved={load} onDeleted={() => { setSelected(undefined); load() }} />}</main>
 }
 

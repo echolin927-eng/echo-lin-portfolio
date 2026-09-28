@@ -8,6 +8,9 @@ import GlareHover from './GlareHover'
 import CardSwap, { Card } from './CardSwap'
 import './styles.css'
 import './orbit-hero.css'
+import { installSiteAssetOverrides } from './site-assets'
+
+installSiteAssetOverrides()
 
 const projects = [
   { number: '01', type: '3D MOTION / PRODUCT', title: 'TFIT NOVA MAX', subtitle: '电子雾化产品 3D 渲染与动态视觉', image: '/assets/tfit-video-show.png', className: 'project-tfit' },

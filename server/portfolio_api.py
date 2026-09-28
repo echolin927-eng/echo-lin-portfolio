@@ -7,6 +7,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import secrets
 import shutil
 import sqlite3
@@ -136,6 +137,37 @@ GROUP_LABELS = {"home":"首页图片", "vi-design":"VI 设计", "amazon-store-de
                 "detail-page-design":"详情页设计", "commercial-design":"商业设计",
                 "website-design":"网站设计", "video-work":"视频作品", "other":"其他素材"}
 
+def asset_work(path, group):
+    lower = path.lower(); name = Path(path).name
+    if group == "home":
+        if name in {"echo-girl.png", "echo-girl-reveal.png"}: return "01 · 首页首屏视觉"
+        if lower.endswith(".mp4") or "poster" in lower or "amazon-ai-prompts-cover" in lower: return "03 · 首页视频"
+        if "detail-work" in lower: return "04 · 首页作品图片"
+        return "02 · 个人介绍与案例卡片"
+    if group == "vi-design":
+        if "/sillroot/" in lower: return "01 · SILLROOT"
+        if "/vi-design/vi-design-" in lower: return "02 · TFIT"
+        return "00 · 类目封面"
+    if group == "amazon-store-design":
+        return "01 · 亚马逊旗舰店设计" if "amazon-store-" in lower else "00 · 类目封面"
+    if group == "detail-page-design":
+        match = re.search(r"detail-(?:work|preview)-(\d{2})", lower)
+        return (match.group(1) + " · 详情页作品 " + match.group(1)) if match else "00 · 类目封面"
+    if group == "commercial-design":
+        if "/commercial-social/" in lower: return "01 · 社媒图片"
+        if "/commercial-posters/" in lower: return "02 · 海报图片"
+        if "/commercial-packaging/" in lower: return "03 · 包装设计"
+        if "/commercial-exhibition/" in lower: return "04 · 展会设计"
+        return "00 · 类目封面"
+    if group == "website-design": return "01 · 网站设计" if "website-design-" in lower else "00 · 类目封面"
+    if group == "video-work":
+        match = re.search(r"(?:motion-reel|reel-cover)-(\d{2})", lower)
+        if match: return match.group(1) + " · 视频作品 " + match.group(1)
+        if "amazon-ai-prompts" in lower: return "05 · AI 创意视频"
+        if "storyboard" in lower: return "06 · 视频分镜"
+        return "其他视频素材"
+    return "其他素材"
+
 def asset_groups(path):
     lower = path.lower(); groups = []
     if path in HOME_ASSETS: groups.append("home")
@@ -155,7 +187,8 @@ def asset_catalog(db):
             if file_path.is_file() and file_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif", ".mp4"}:
                 paths.add("/assets/" + file_path.relative_to(ASSET_ROOT).as_posix())
     return [{"path": item, "label": Path(item).name, "groups": asset_groups(item),
-             "group": " / ".join(GROUP_LABELS[group] for group in asset_groups(item)), "type": "video" if item.lower().endswith(".mp4") else "image", "original_url": item,
+             "group": " / ".join(GROUP_LABELS[group] for group in asset_groups(item)), "works": {group: asset_work(item, group) for group in asset_groups(item)},
+             "type": "video" if item.lower().endswith(".mp4") else "image", "original_url": item,
              "url": "/portfolio-media/" + quote(overrides[item]["replacement_key"]) if item in overrides and overrides[item]["replacement_key"] else item,
              "replaced": bool(item in overrides and overrides[item]["replacement_key"]), "hidden": bool(overrides[item]["hidden"]) if item in overrides else False}
             for item in sorted(paths, key=lambda value: (asset_groups(value), value))]

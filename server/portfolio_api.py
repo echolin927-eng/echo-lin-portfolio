@@ -116,29 +116,49 @@ def image_kind(head):
     if head.startswith((b"GIF87a", b"GIF89a")): return "gif"
     if head.startswith(b"RIFF") and head[8:12] == b"WEBP": return "webp"
     if len(head) > 12 and head[4:12] in (b"ftypavif", b"ftypavis"): return "avif"
+    if len(head) > 12 and head[4:8] == b"ftyp": return "mp4"
     return None
 
-def asset_group(path):
-    lower = path.lower()
-    if "/vi-design/" in lower: return "VI 设计"
-    if "amazon-store" in lower: return "亚马逊店铺"
-    if "detail" in lower or "aebar" in lower or "fountain" in lower: return "详情页设计"
-    if "commercial" in lower: return "商业设计"
-    if "website" in lower or "web-page" in lower: return "网站设计"
-    if "video" in lower or "motion" in lower or "reel" in lower: return "视频封面"
-    return "首页与共用素材"
+HOME_ASSETS = {
+    "/assets/echo-girl.png", "/assets/echo-girl-reveal.png", "/assets/echo-portrait.jpg",
+    "/assets/work-showcase-01-new.png", "/assets/work-showcase-02-new.png", "/assets/work-showcase-01.jpg",
+    "/assets/work-showcase-04.jpg", "/assets/work-showcase-05.jpg", "/assets/design-cover-amazon-store.jpg",
+    "/assets/design-cover-commercial.jpg", "/assets/design-cover-detail-page.jpg", "/assets/design-cover-website.jpg",
+    "/assets/motion-reel-01.mp4", "/assets/motion-reel-02.mp4", "/assets/motion-reel-03.mp4",
+    "/assets/amazon-ai-prompts.mp4", "/assets/motion-reel-01-poster.jpg", "/assets/motion-reel-02-poster.jpg",
+    "/assets/motion-reel-03-poster.jpg", "/assets/amazon-ai-prompts-cover.png",
+    "/assets/detail-work-08-main-01.png", "/assets/detail-work-08-main-02.jpg", "/assets/detail-work-08-main-03.jpg",
+    "/assets/detail-work-08-main-04.jpg", "/assets/detail-work-01-main-01.jpg", "/assets/detail-work-01-main-02.jpg",
+    "/assets/detail-work-01-main-03.jpg", "/assets/detail-work-01-main-04.jpg"
+}
+
+GROUP_LABELS = {"home":"首页图片", "vi-design":"VI 设计", "amazon-store-design":"亚马逊店铺",
+                "detail-page-design":"详情页设计", "commercial-design":"商业设计",
+                "website-design":"网站设计", "video-work":"视频作品", "other":"其他素材"}
+
+def asset_groups(path):
+    lower = path.lower(); groups = []
+    if path in HOME_ASSETS: groups.append("home")
+    if "/vi-design/" in lower: groups.append("vi-design")
+    if "amazon-store" in lower: groups.append("amazon-store-design")
+    if "detail" in lower or "aebar" in lower or "fountain" in lower: groups.append("detail-page-design")
+    if "commercial" in lower: groups.append("commercial-design")
+    if "website" in lower or "web-page" in lower: groups.append("website-design")
+    if lower.endswith(".mp4") or "video" in lower or "motion" in lower or "reel" in lower: groups.append("video-work")
+    return groups or ["other"]
 
 def asset_catalog(db):
     overrides = {row["path"]: row for row in db.execute("SELECT * FROM site_assets").fetchall()}
     paths = set(overrides)
     if ASSET_ROOT.is_dir():
         for file_path in ASSET_ROOT.rglob("*"):
-            if file_path.is_file() and file_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"}:
+            if file_path.is_file() and file_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif", ".mp4"}:
                 paths.add("/assets/" + file_path.relative_to(ASSET_ROOT).as_posix())
-    return [{"path": item, "label": Path(item).name, "group": asset_group(item), "original_url": item,
+    return [{"path": item, "label": Path(item).name, "groups": asset_groups(item),
+             "group": " / ".join(GROUP_LABELS[group] for group in asset_groups(item)), "type": "video" if item.lower().endswith(".mp4") else "image", "original_url": item,
              "url": "/portfolio-media/" + quote(overrides[item]["replacement_key"]) if item in overrides and overrides[item]["replacement_key"] else item,
              "replaced": bool(item in overrides and overrides[item]["replacement_key"]), "hidden": bool(overrides[item]["hidden"]) if item in overrides else False}
-            for item in sorted(paths, key=lambda value: (asset_group(value), value))]
+            for item in sorted(paths, key=lambda value: (asset_groups(value), value))]
 
 def project_rows(db, category=None, include_drafts=False, deleted=False):
     conditions = ["deleted_at IS NOT NULL" if deleted else "deleted_at IS NULL"]
@@ -296,7 +316,7 @@ class Handler(BaseHTTPRequestHandler):
         asset_path = str(form.getfirst("path", "")); item = form["image"] if "image" in form else None
         if not self.valid_asset(db, asset_path) or item is None or not getattr(item, "filename", None): self.fail("请选择有效的站点图片。"); return
         head = item.file.read(16); extension = image_kind(head)
-        if not extension: self.fail("仅支持 JPG、PNG、WebP、GIF 或 AVIF 图片。"); return
+        if not extension: self.fail("仅支持 JPG、PNG、WebP、GIF、AVIF 图片或 MP4 视频。"); return
         folder = MEDIA_DIR / "site-assets"; folder.mkdir(parents=True, exist_ok=True)
         file_key = "site-assets/" + str(uuid.uuid4()) + "." + extension; output_path = MEDIA_DIR / file_key; size = len(head)
         try:

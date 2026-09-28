@@ -12,18 +12,22 @@ const normalizeAssetPath = value => {
 export function installSiteAssetOverrides() {
   let overrides = {}
 
-  const applyMedia = element => {
-    const attribute = element.tagName === 'VIDEO' && element.hasAttribute('poster') ? 'poster' : 'src'
+  const applyAttribute = (element, attribute) => {
+    const key = attribute === 'poster' ? 'cmsOriginalPoster' : 'cmsOriginalSrc'
     const current = element.getAttribute(attribute)
-    const original = element.dataset.cmsOriginalAsset || normalizeAssetPath(current)
+    const original = element.dataset[key] || normalizeAssetPath(current)
     if (!original) return
-    element.dataset.cmsOriginalAsset = original
+    element.dataset[key] = original
     const override = overrides[original]
     const target = override?.url || original
     if (current !== target) element.setAttribute(attribute, target)
     element.hidden = Boolean(override?.hidden)
-    element.closest('figure, article')?.classList.toggle('cms-asset-hidden', Boolean(override?.hidden))
     if (element.tagName === 'VIDEO' && attribute === 'src' && current !== target) element.load()
+  }
+
+  const applyMedia = element => {
+    if (element.hasAttribute('src')) applyAttribute(element, 'src')
+    if (element.tagName === 'VIDEO' && element.hasAttribute('poster')) applyAttribute(element, 'poster')
   }
 
   const scan = root => {

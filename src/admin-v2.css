@@ -1,0 +1,8 @@
+@import './admin.css';
+
+.trash-grid .project-card{cursor:default}
+.trash-card .project-cover{filter:saturate(.55);opacity:.78}
+.trash-actions{display:flex;gap:8px;margin-top:14px}
+.trash-actions button{border:1px solid #c5c9bd;border-radius:7px;background:#f6f7f2;padding:8px 11px;font-size:11px;cursor:pointer}
+.trash-actions .danger-text{border-color:#d9a19c;color:#a02921}
+.dashboard aside nav button:last-child{margin-top:14px;border-top:1px solid #363a32}

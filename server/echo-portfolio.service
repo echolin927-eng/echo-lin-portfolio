@@ -1,0 +1,24 @@
+[Unit]
+Description=Echo Lin portfolio CMS API
+After=network.target
+
+[Service]
+Type=simple
+User=www
+Group=www
+Environment=PYTHONUNBUFFERED=1
+Environment=PORTFOLIO_HOST=127.0.0.1
+Environment=PORTFOLIO_PORT=8787
+Environment=PORTFOLIO_DATA_DIR=/var/lib/echo-portfolio
+Environment=PORTFOLIO_CONFIG=/etc/echo-portfolio/config.json
+ExecStart=/usr/bin/python3 /opt/echo-portfolio/portfolio_api.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/echo-portfolio /etc/echo-portfolio
+
+[Install]
+WantedBy=multi-user.target

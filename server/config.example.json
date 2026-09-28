@@ -1,0 +1,5 @@
+{
+  "allowed_origin": "https://echolin.com.cn",
+  "setup_token": "ONE_TIME_SETUP_TOKEN",
+  "session_secret": "REPLACE_WITH_64_RANDOM_HEX_CHARACTERS"
+}

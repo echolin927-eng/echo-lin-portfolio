@@ -14,7 +14,8 @@ import time
 import uuid
 from datetime import datetime, timezone
 from http.cookies import SimpleCookie
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
@@ -130,6 +131,9 @@ def project_rows(db, category=None, include_drafts=False, deleted=False):
         project["images"] = [{**dict(image), "url": "/portfolio-media/" + quote(image["file_key"])} for image in images if image["project_id"] == project["id"] and not image["deleted_at"]]
         result.append(project)
     return result
+
+class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "EchoPortfolio/1.0"
